@@ -93,9 +93,9 @@ def stalkPlayers(wynnApi, toStalk, apiToUse, hunterCalling):
     prevTargets = None
     while True:
         # Get players
-        players =   wynnApi.getPlayersOnline() if toStalk == "all" else \
-                    wynnApi.getPlayersOnlineInWorld(toStalk) if type(toStalk) != list else \
-                    toStalk
+        players = wynnApi.getPlayersOnline() if toStalk == "all" else \
+            wynnApi.getPlayersOnlineInWorld(toStalk) if type(toStalk) != list else \
+                toStalk
         # Get targets with stats
         targetStats = getTargetStats(players, apiToUse, wynnApi, hunterCalling)
         if prevTargets is not None:
@@ -108,28 +108,62 @@ def stalkPlayers(wynnApi, toStalk, apiToUse, hunterCalling):
                             if nowClass.className == beforeClass.className:
                                 # Found it, lets check if he was active
                                 if nowClass.blocksWalked != beforeClass.blocksWalked:
-                                    # Yey, he was active
-                                    print("Target found: " + nowPlayer)
+                                    # Everything that changed
                                     mobsKilled = nowClass.mobsKilled - beforeClass.mobsKilled
                                     chestsFound = nowClass.chestsFound - beforeClass.chestsFound
                                     blocksWalked = nowClass.blocksWalked - beforeClass.blocksWalked
-                                    questsDone = len(nowClass.quests) - len(beforeClass.quests)
+                                    questsDone = list(set(nowClass.quests) - set(beforeClass.quests))
                                     playTime = nowClass.playtime - beforeClass.playtime
-                                    alchemism = str(nowClass.alchemismLevel.level - beforeClass.alchemismLevel.level) + "L " + str(nowClass.alchemismLevel.xp - beforeClass.alchemismLevel.xp) + "xp"
-                                    armouring = str(nowClass.armouringLevel.level - beforeClass.armouringLevel.level) + "L " + str(nowClass.armouringLevel.xp - beforeClass.armouringLevel.xp) + "xp"
-                                    combat = str(nowClass.combatLevel.level - beforeClass.combatLevel.level) + "L " + str(nowClass.combatLevel.xp - beforeClass.combatLevel.xp) + "xp"
-                                    cooking = str(nowClass.cookingLevel.level - beforeClass.cookingLevel.level) + "L " + str(nowClass.cookingLevel.xp - beforeClass.cookingLevel.xp) + "xp"
-                                    farming = str(nowClass.farmingLevel.level - beforeClass.farmingLevel.level) + "L " + str(nowClass.farmingLevel.xp - beforeClass.farmingLevel.xp) + "xp"
-                                    fishing = str(nowClass.fishingLevel.level - beforeClass.fishingLevel.level) + "L " + str(nowClass.fishingLevel.xp - beforeClass.fishingLevel.xp) + "xp"
-                                    mining = str(nowClass.miningLevel.level - beforeClass.miningLevel.level) + "L " + str(nowClass.miningLevel.xp - beforeClass.miningLevel.xp) + "xp"
-                                    tailoring = str(nowClass.tailoringLevel.level - beforeClass.tailoringLevel.level) + "L " + str(nowClass.tailoringLevel.xp - beforeClass.tailoringLevel.xp) + "xp"
-                                    weaponsmithing = str(nowClass.weaponsmithingLevel.level - beforeClass.weaponsmithingLevel.level) + "L " + str(nowClass.weaponsmithingLevel.xp - beforeClass.weaponsmithingLevel.xp) + "xp"
-                                    woodworking = str(nowClass.woodworkingLevel.level - beforeClass.woodworkingLevel.level) + "L " + str(nowClass.woodworkingLevel.xp - beforeClass.woodworkingLevel.xp) + "xp"
-                                    woodcutting = str(nowClass.woodcuttingLevel.level - beforeClass.woodcuttingLevel.level) + "L " + str(nowClass.woodcuttingLevel.xp - beforeClass.woodcuttingLevel.xp) + "xp"
-
+                                    alchemism = "alchemism " + str(
+                                        nowClass.alchemismLevel.level - beforeClass.alchemismLevel.level) + "L " + str(
+                                        nowClass.alchemismLevel.xp - beforeClass.alchemismLevel.xp) + "xp"
+                                    armouring = "armouring " + str(
+                                        nowClass.armouringLevel.level - beforeClass.armouringLevel.level) + "L " + str(
+                                        nowClass.armouringLevel.xp - beforeClass.armouringLevel.xp) + "xp"
+                                    combat = "combat " + str(
+                                        nowClass.combatLevel.level - beforeClass.combatLevel.level) + "L " + str(
+                                        nowClass.combatLevel.xp - beforeClass.combatLevel.xp) + "xp"
+                                    cooking = "cooking " + str(
+                                        nowClass.cookingLevel.level - beforeClass.cookingLevel.level) + "L " + str(
+                                        nowClass.cookingLevel.xp - beforeClass.cookingLevel.xp) + "xp"
+                                    farming = "farming " + str(
+                                        nowClass.farmingLevel.level - beforeClass.farmingLevel.level) + "L " + str(
+                                        nowClass.farmingLevel.xp - beforeClass.farmingLevel.xp) + "xp"
+                                    fishing = "fishing " + str(
+                                        nowClass.fishingLevel.level - beforeClass.fishingLevel.level) + "L " + str(
+                                        nowClass.fishingLevel.xp - beforeClass.fishingLevel.xp) + "xp"
+                                    mining = "mining " + str(
+                                        nowClass.miningLevel.level - beforeClass.miningLevel.level) + "L " + str(
+                                        nowClass.miningLevel.xp - beforeClass.miningLevel.xp) + "xp"
+                                    tailoring = "tailoring " + str(
+                                        nowClass.tailoringLevel.level - beforeClass.tailoringLevel.level) + "L " + str(
+                                        nowClass.tailoringLevel.xp - beforeClass.tailoringLevel.xp) + "xp"
+                                    weaponsmithing = "weaponsmithing " + str(
+                                        nowClass.weaponsmithingLevel.level - beforeClass.weaponsmithingLevel.level) + "L " + str(
+                                        nowClass.weaponsmithingLevel.xp - beforeClass.weaponsmithingLevel.xp) + "xp"
+                                    woodworking = "woodworking " + str(
+                                        nowClass.woodworkingLevel.level - beforeClass.woodworkingLevel.level) + "L " + str(
+                                        nowClass.woodworkingLevel.xp - beforeClass.woodworkingLevel.xp) + "xp"
+                                    woodcutting = "woodcutting " + str(
+                                        nowClass.woodcuttingLevel.level - beforeClass.woodcuttingLevel.level) + "L " + str(
+                                        nowClass.woodcuttingLevel.xp - beforeClass.woodcuttingLevel.xp) + "xp"
+                                    # Get where he is (This get updated every minute)
+                                    lobby = wynnApi.getLobbyPlayer(nowPlayer)
+                                    # Output
+                                    message = "Player: {}. Hunted: {}. Hunter's calling: {}. Lobby: {}\n" \
+                                              "Mobs: {}. Chests: {}. Walked: {}. Quests: {}. Time: {}\n" \
+                                              "{} {} {}\n{} {} {}\n{} {} {}\n{} {}".format(
+                                        nowPlayer, "y" if nowClass.gamemode.hunted else "n",
+                                        "y" if nowClass.quests.__contains__('A Hunter\'s Calling') else "n", lobby,
+                                        mobsKilled, chestsFound, blocksWalked, questsDone.__str__(), playTime,
+                                        alchemism, armouring, combat, cooking, farming, fishing, mining, tailoring,
+                                        weaponsmithing,
+                                        woodcutting, woodworking
+                                    )
+                                    app.warning(message)
 
         prevTargets = targetStats
-        time.sleep(5 * 60)
+        time.sleep(10 * 60)
 
 
 def main():
@@ -147,7 +181,8 @@ def main():
     if mode == "w":
         # Ask for the server
         servetToTarget = askServer()
-        app.info("Api: " + str(apiToUse + 1) + ". Server: " + str(servetToTarget) + ". Hunter: " + hunterCalling)
+        app.info("Api: " + str(apiToUse + 1) + ". Server: " + str(
+            servetToTarget) + ". Hunter: " + "y" if hunterCalling else "n")
         # Start stalking
         stalkPlayers(wynnApi, servetToTarget, apiToUse, hunterCalling)
     elif mode == "s":

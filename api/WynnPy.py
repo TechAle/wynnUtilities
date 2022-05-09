@@ -105,4 +105,10 @@ class wynnPy:
         response = self.requestManager.sendRequest(self.WEBURL + self.uList.getWynnClass(name, classWynn))
         return wynnClass(response)
 
+    def getLobbyPlayer(self, name):
+        response = self.requestManager.sendRequest(self.BASEURL + self.uList.getServerList())
+        for server in response:
+            if response[server].__contains__("name"):
+                return server
+        return -1
 
