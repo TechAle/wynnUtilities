@@ -2,13 +2,14 @@ from api.RequestManager import requestManger
 from api.classes.Guild import guild
 from api.classes.Item import item
 from api.classes.Player import player
-from api.classes.PlayerStats import playerStats
+from api.classes.PlayerStats import playerStats, wynnClass
 from api.classes.Territory import territory
 from api.urls.UrlList import urlList
 
 
 class wynnPy:
     BASEURL = "http://api.wynncraft.com/"
+    WEBURL = "https://web-api.wynncraft.com/"
 
     def __init__(self):
         self.requestManager = requestManger()
@@ -80,3 +81,25 @@ class wynnPy:
     def getPlayerStats(self, name):
         response = self.requestManager.sendRequest(self.BASEURL + self.uList.getPlayerStats(name))
         return playerStats(response["data"][0])
+
+    def getPlayersOnline(self):
+        response = self.requestManager.sendRequest(self.BASEURL + self.uList.getServerList())
+        players = []
+        del response["request"]
+        for server in response:
+            players.extend(response[server])
+        return players
+
+    def getPlayersOnlineInWorld(self, world):
+        response = self.requestManager.sendRequest(self.BASEURL + self.uList.getServerList())
+        return response[world]
+
+    def getClasses(self, name):
+        response = self.requestManager.sendRequest(self.WEBURL + self.uList.getClasses(name))
+        return response
+
+    def getWynnClass(self, name, classWynn):
+        response = self.requestManager.sendRequest(self.WEBURL + self.uList.getWynnClass(name, classWynn))
+        return wynnClass(response)
+
+

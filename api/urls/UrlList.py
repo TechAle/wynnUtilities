@@ -1,10 +1,11 @@
-from api.urls.types import PublicApi, RequestV2
+from api.urls.types import PublicApi, RequestV2, RequestV3
 
 
 class urlList:
     def __init__(self):
         self.pApi = PublicApi.publicApi()
         self.v2 = RequestV2.requestV2()
+        self.v3 = RequestV3.requestV3()
 
     def getGuildList(self):
         return self.pApi.getGuildList()
@@ -38,3 +39,12 @@ class urlList:
 
     def getPlayerStats(self, name):
         return self.v2.getPlayerStats(name)
+
+    def getPlayersOnline(self):
+        return self.pApi.getPlayersOnline()
+
+    def getClasses(self, name):
+        return self.v3.getClasses(name)
+
+    def getWynnClass(self, name, classWynn):
+        return self.v3.getWynnClass(name, classWynn)

@@ -34,3 +34,6 @@ class publicApi(baseRequest):
 
     def getTerritory(self):
         return self.extension + "territoryList"
+
+    def getPlayersOnline(self):
+        return self.getServerList()

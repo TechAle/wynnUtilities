@@ -1,9 +1,9 @@
 import api.WynnPy
 
 def main():
-    a = api.WynnPy.wynnPy()
-    output = a.getPlayerStats("NoCatsNoLife")
-    print(output)
+    wynnApi = api.WynnPy.wynnPy()
+    ## Get players
+    players = wynnApi.getWynnClass("NoCatsNoLife", "shaman")
 
 
 if __name__ == "__main__":
