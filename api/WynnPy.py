@@ -91,6 +91,8 @@ class wynnPy:
         return players
 
     def getPlayersOnlineInWorld(self, world):
+        if type(world) == int:
+            world = "WC" + world.__str__()
         response = self.requestManager.sendRequest(self.BASEURL + self.uList.getServerList())
         return response[world]
 

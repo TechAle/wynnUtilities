@@ -39,7 +39,7 @@ class wynnClass:
         self.deaths = dict["deaths"]
         self.playtime = dict["playtime"]
         self.gamemode = gamemode(dict["gamemode"])
-        b = 0
+        self.chestsFound = dict["chestsFound"]
 
 class gamemode:
     def __init__(self, dict):
