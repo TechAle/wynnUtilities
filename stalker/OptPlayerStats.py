@@ -1,5 +1,5 @@
 class optPlayerStats:
-    def __init__(self, wynnClass):
+    def __init__(self, wynnClass, timestamp):
         self.className = wynnClass.name
         self.mobsKilled = wynnClass.mobsKilled
         self.gamemode = wynnClass.gamemode
@@ -8,6 +8,8 @@ class optPlayerStats:
         self.quests = wynnClass.quests
         self.raids = wynnClass.raids
         self.chestsFound = wynnClass.chestsFound
+        self.blocksWalked = wynnClass.blocksWalked
+        self.playtime = wynnClass.playtime
         self.alchemismLevel = wynnClass.alchemismLevel
         self.armouringLevel = wynnClass.armouringLevel
         self.combatLevel = wynnClass.combatLevel
@@ -19,3 +21,5 @@ class optPlayerStats:
         self.weaponsmithingLevel = wynnClass.weaponsmithingLevel
         self.woodcuttingLevel = wynnClass.woodcuttingLevel
         self.woodworkingLevel = wynnClass.woodworkingLevel
+        self.timeStamp = timestamp
+

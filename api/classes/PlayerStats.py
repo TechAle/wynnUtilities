@@ -10,6 +10,7 @@ class playerStats:
         self.classes = []
         for classCheck in json["classes"]:
             self.classes.append(wynnClass(classCheck))
+        self.timeStamp = json["timestamp"]
 
 class wynnClass:
     def __init__(self, dict):
@@ -40,6 +41,7 @@ class wynnClass:
         self.playtime = dict["playtime"]
         self.gamemode = gamemode(dict["gamemode"])
         self.chestsFound = dict["chestsFound"]
+        self.blocksWalked = dict["blocksWalked"]
 
 class gamemode:
     def __init__(self, dict):

@@ -80,6 +80,7 @@ class wynnPy:
 
     def getPlayerStats(self, name):
         response = self.requestManager.sendRequest(self.BASEURL + self.uList.getPlayerStats(name))
+        response["data"][0]["timestamp"] = response["timestamp"]
         return playerStats(response["data"][0])
 
     def getPlayersOnline(self):

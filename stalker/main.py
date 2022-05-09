@@ -27,17 +27,19 @@ def askServer():
                 or type(choose) == str and choose.lower() == "all":
             return choose
 
+
 def askSingleOrWorld():
     while True:
         if type(choose := input("Single or World? (s-w):")) == str and (
-        choose := choose.lower()) == "s" or choose == "w":
+                choose := choose.lower()) == "s" or choose == "w":
             return choose
+
 
 def askHunterCalling():
     while True:
         if type(choose := input("Hunter's calling? (y-n):")) == str and (
-        choose := choose.lower()) == "y" or choose == "n":
-            return choose
+                choose := choose.lower()) == "y" or choose == "n":
+            return choose == "y"
 
 
 def getTargetStats(players, apiToUse, wynnApi, hunterCalling):
@@ -52,7 +54,7 @@ def getTargetStats(players, apiToUse, wynnApi, hunterCalling):
             ## Add to the dict optimized stats
             if len(classAdded) > 0:
                 app.warning("Found possible target: " + player)
-                playerStats["k"] = classAdded
+                playerStats[player] = classAdded
             else:
                 app.info("Removed " + player)
 
@@ -61,6 +63,7 @@ def getTargetStats(players, apiToUse, wynnApi, hunterCalling):
         pass
 
     return playerStats
+
 
 def analysisPlayerClasses(player, wynnApi, hunterCalling):
     ## Get every stats
@@ -71,11 +74,13 @@ def analysisPlayerClasses(player, wynnApi, hunterCalling):
         ## Check every class
         for classWynn in statsPlayer.classes:
             if isTarget(classWynn, hunterCalling):
-                classAdded.append(optPlayerStats(classWynn))
+                classAdded.append(optPlayerStats(classWynn, statsPlayer.timeStamp))
     return classAdded
 
+
 def isTarget(stats, hunterCalling):
-    return stats.gamemode.hunted or (hunterCalling and stats.quests.__contains__("A Hunter"))
+    return stats.gamemode.hunted or (hunterCalling and stats.quests.__contains__('A Hunter\'s Calling'))
+
 
 def askPlayerToStalk():
     while True:
@@ -83,9 +88,48 @@ def askPlayerToStalk():
         if len(inp := inp.strip().split(",")) > 0:
             return inp
 
-def stalkPlayers(players, wynnApi, apiToUse, hunterCalling):
-    app.info("Waiting for refresh")
-    time.sleep(60*5)
+
+def stalkPlayers(wynnApi, toStalk, apiToUse, hunterCalling):
+    prevTargets = None
+    while True:
+        # Get players
+        players =   wynnApi.getPlayersOnline() if toStalk == "all" else \
+                    wynnApi.getPlayersOnlineInWorld(toStalk) if type(toStalk) != list else \
+                    toStalk
+        # Get targets with stats
+        targetStats = getTargetStats(players, apiToUse, wynnApi, hunterCalling)
+        if prevTargets is not None:
+            # Search for the name of the player we are checking
+            for nowPlayer in targetStats:
+                if prevTargets.__contains__(nowPlayer):
+                    # Now we have to search for the same class
+                    for nowClass in targetStats[nowPlayer]:
+                        for beforeClass in prevTargets[nowPlayer]:
+                            if nowClass.className == beforeClass.className:
+                                # Found it, lets check if he was active
+                                if nowClass.blocksWalked != beforeClass.blocksWalked:
+                                    # Yey, he was active
+                                    print("Target found: " + nowPlayer)
+                                    mobsKilled = nowClass.mobsKilled - beforeClass.mobsKilled
+                                    chestsFound = nowClass.chestsFound - beforeClass.chestsFound
+                                    blocksWalked = nowClass.blocksWalked - beforeClass.blocksWalked
+                                    questsDone = len(nowClass.quests) - len(beforeClass.quests)
+                                    playTime = nowClass.playtime - beforeClass.playtime
+                                    alchemism = str(nowClass.alchemismLevel.level - beforeClass.alchemismLevel.level) + "L " + str(nowClass.alchemismLevel.xp - beforeClass.alchemismLevel.xp) + "xp"
+                                    armouring = str(nowClass.armouringLevel.level - beforeClass.armouringLevel.level) + "L " + str(nowClass.armouringLevel.xp - beforeClass.armouringLevel.xp) + "xp"
+                                    combat = str(nowClass.combatLevel.level - beforeClass.combatLevel.level) + "L " + str(nowClass.combatLevel.xp - beforeClass.combatLevel.xp) + "xp"
+                                    cooking = str(nowClass.cookingLevel.level - beforeClass.cookingLevel.level) + "L " + str(nowClass.cookingLevel.xp - beforeClass.cookingLevel.xp) + "xp"
+                                    farming = str(nowClass.farmingLevel.level - beforeClass.farmingLevel.level) + "L " + str(nowClass.farmingLevel.xp - beforeClass.farmingLevel.xp) + "xp"
+                                    fishing = str(nowClass.fishingLevel.level - beforeClass.fishingLevel.level) + "L " + str(nowClass.fishingLevel.xp - beforeClass.fishingLevel.xp) + "xp"
+                                    mining = str(nowClass.miningLevel.level - beforeClass.miningLevel.level) + "L " + str(nowClass.miningLevel.xp - beforeClass.miningLevel.xp) + "xp"
+                                    tailoring = str(nowClass.tailoringLevel.level - beforeClass.tailoringLevel.level) + "L " + str(nowClass.tailoringLevel.xp - beforeClass.tailoringLevel.xp) + "xp"
+                                    weaponsmithing = str(nowClass.weaponsmithingLevel.level - beforeClass.weaponsmithingLevel.level) + "L " + str(nowClass.weaponsmithingLevel.xp - beforeClass.weaponsmithingLevel.xp) + "xp"
+                                    woodworking = str(nowClass.woodworkingLevel.level - beforeClass.woodworkingLevel.level) + "L " + str(nowClass.woodworkingLevel.xp - beforeClass.woodworkingLevel.xp) + "xp"
+                                    woodcutting = str(nowClass.woodcuttingLevel.level - beforeClass.woodcuttingLevel.level) + "L " + str(nowClass.woodcuttingLevel.xp - beforeClass.woodcuttingLevel.xp) + "xp"
+
+
+        prevTargets = targetStats
+        time.sleep(5 * 60)
 
 
 def main():
@@ -103,15 +147,12 @@ def main():
     if mode == "w":
         # Ask for the server
         servetToTarget = askServer()
-        app.info("Api: "+str(apiToUse + 1)+". Server: "+str(servetToTarget)+". Hunter: " + hunterCalling)
-        # Get players
-        players = wynnApi.getPlayersOnline() if servetToTarget == "all" else wynnApi.getPlayersOnlineInWorld(servetToTarget)
-        # Get targets with stats
-        targetStats = getTargetStats(players, apiToUse, wynnApi, hunterCalling)
+        app.info("Api: " + str(apiToUse + 1) + ". Server: " + str(servetToTarget) + ". Hunter: " + hunterCalling)
+        # Start stalking
+        stalkPlayers(wynnApi, servetToTarget, apiToUse, hunterCalling)
     elif mode == "s":
         toStalk = askPlayerToStalk()
-        targetStats = getTargetStats(toStalk, apiToUse, wynnApi, hunterCalling)
-        stalkPlayers(targetStats, wynnApi, apiToUse, hunterCalling)
+        stalkPlayers(wynnApi, toStalk, apiToUse, hunterCalling)
 
 
 if __name__ == "__main__":
