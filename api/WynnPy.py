@@ -2,6 +2,7 @@ from api.RequestManager import requestManger
 from api.classes.Guild import guild
 from api.classes.Item import item
 from api.classes.Player import player
+from api.classes.PlayerStats import playerStats
 from api.classes.Territory import territory
 from api.urls.UrlList import urlList
 
@@ -75,3 +76,7 @@ class wynnPy:
         del response["request"]
         del response["search"]
         return response
+
+    def getPlayerStats(self, name):
+        response = self.requestManager.sendRequest(self.BASEURL + self.uList.getPlayerStats(name))
+        return playerStats(response["data"][0])

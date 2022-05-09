@@ -35,3 +35,6 @@ class urlList:
 
     def searchInfo(self, name):
         return self.pApi.searchInfo(name)
+
+    def getPlayerStats(self, name):
+        return self.v2.getPlayerStats(name)

@@ -2,7 +2,7 @@ import api.WynnPy
 
 def main():
     a = api.WynnPy.wynnPy()
-    output = a.getTerritory()
+    output = a.getPlayerStats("NoCatsNoLife")
     print(output)
 
 
