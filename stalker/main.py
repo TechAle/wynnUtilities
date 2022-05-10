@@ -1,6 +1,7 @@
 import api.WynnPy
 from stalker.OptPlayerStats import optPlayerStats
 import time
+from stalker.utils.operatorsUtils import *
 
 # Setup logger
 # Directory of every chats
@@ -23,8 +24,8 @@ def askApi():
 def askServer():
     while True:
 
-        if (choose := input("Server (all-number):")).isnumeric() and ((choose := int(choose)) > 0 and choose <= 50) \
-                or type(choose) == str and choose.lower() == "all":
+        if (choose := input("Server (all-number-number,number):")).isnumeric() and ((choose := int(choose)) > 0 and choose <= 50) \
+                or (type(choose) == str and choose.lower() == "all") or (choose.__contains__(",") and len(choose := choose.split(",")) > 0):
             return choose
 
 
@@ -49,11 +50,11 @@ def getTargetStats(players, apiToUse, wynnApi, hunterCalling):
         ## For every players, get their stats
         for player in players:
 
-            classAdded = analysisPlayerClasses(player, wynnApi, hunterCalling)
+            classAdded, info = analysisPlayerClasses(player, wynnApi, hunterCalling)
 
             ## Add to the dict optimized stats
             if len(classAdded) > 0:
-                app.warning("Found possible target: " + player)
+                app.warning("Found possible target: {}. info: {}".format(player, info))
                 playerStats[player] = classAdded
             else:
                 app.info("Removed " + player)
@@ -70,12 +71,15 @@ def analysisPlayerClasses(player, wynnApi, hunterCalling):
     statsPlayer = wynnApi.getPlayerStats(player)
     ## Classes that are going to be added
     classAdded = []
+    info = ""
     if statsPlayer.meta.online:
         ## Check every class
         for classWynn in statsPlayer.classes:
             if isTarget(classWynn, hunterCalling):
-                classAdded.append(optPlayerStats(classWynn, statsPlayer.timeStamp))
-    return classAdded
+                classAdded.append((toAdd := optPlayerStats(classWynn, statsPlayer.timeStamp)))
+                info += ("y " if toAdd.gamemode.hunted else "n ") + toAdd.className + "|"
+    info = '[' + info + ']'
+    return classAdded, info
 
 
 def isTarget(stats, hunterCalling):
@@ -108,59 +112,68 @@ def stalkPlayers(wynnApi, toStalk, apiToUse, hunterCalling):
                             if nowClass.className == beforeClass.className:
                                 # Found it, lets check if he was active
                                 if nowClass.blocksWalked != beforeClass.blocksWalked:
+                                    # @formatter:off
+                                    outputStr = ""
                                     # Everything that changed
-                                    mobsKilled = nowClass.mobsKilled - beforeClass.mobsKilled
-                                    chestsFound = nowClass.chestsFound - beforeClass.chestsFound
-                                    blocksWalked = nowClass.blocksWalked - beforeClass.blocksWalked
-                                    questsDone = list(set(nowClass.quests) - set(beforeClass.quests))
-                                    playTime = nowClass.playtime - beforeClass.playtime
-                                    alchemism = "alchemism " + str(
-                                        nowClass.alchemismLevel.level - beforeClass.alchemismLevel.level) + "L " + str(
-                                        nowClass.alchemismLevel.xp - beforeClass.alchemismLevel.xp) + "xp"
-                                    armouring = "armouring " + str(
-                                        nowClass.armouringLevel.level - beforeClass.armouringLevel.level) + "L " + str(
-                                        nowClass.armouringLevel.xp - beforeClass.armouringLevel.xp) + "xp"
-                                    combat = "combat " + str(
-                                        nowClass.combatLevel.level - beforeClass.combatLevel.level) + "L " + str(
-                                        nowClass.combatLevel.xp - beforeClass.combatLevel.xp) + "xp"
-                                    cooking = "cooking " + str(
-                                        nowClass.cookingLevel.level - beforeClass.cookingLevel.level) + "L " + str(
-                                        nowClass.cookingLevel.xp - beforeClass.cookingLevel.xp) + "xp"
-                                    farming = "farming " + str(
-                                        nowClass.farmingLevel.level - beforeClass.farmingLevel.level) + "L " + str(
-                                        nowClass.farmingLevel.xp - beforeClass.farmingLevel.xp) + "xp"
-                                    fishing = "fishing " + str(
-                                        nowClass.fishingLevel.level - beforeClass.fishingLevel.level) + "L " + str(
-                                        nowClass.fishingLevel.xp - beforeClass.fishingLevel.xp) + "xp"
-                                    mining = "mining " + str(
-                                        nowClass.miningLevel.level - beforeClass.miningLevel.level) + "L " + str(
-                                        nowClass.miningLevel.xp - beforeClass.miningLevel.xp) + "xp"
-                                    tailoring = "tailoring " + str(
-                                        nowClass.tailoringLevel.level - beforeClass.tailoringLevel.level) + "L " + str(
-                                        nowClass.tailoringLevel.xp - beforeClass.tailoringLevel.xp) + "xp"
-                                    weaponsmithing = "weaponsmithing " + str(
-                                        nowClass.weaponsmithingLevel.level - beforeClass.weaponsmithingLevel.level) + "L " + str(
-                                        nowClass.weaponsmithingLevel.xp - beforeClass.weaponsmithingLevel.xp) + "xp"
-                                    woodworking = "woodworking " + str(
-                                        nowClass.woodworkingLevel.level - beforeClass.woodworkingLevel.level) + "L " + str(
-                                        nowClass.woodworkingLevel.xp - beforeClass.woodworkingLevel.xp) + "xp"
-                                    woodcutting = "woodcutting " + str(
-                                        nowClass.woodcuttingLevel.level - beforeClass.woodcuttingLevel.level) + "L " + str(
-                                        nowClass.woodcuttingLevel.xp - beforeClass.woodcuttingLevel.xp) + "xp"
-                                    # Get where he is (This get updated every minute)
-                                    lobby = wynnApi.getLobbyPlayer(nowPlayer)
-                                    # Output
-                                    message = "Player: {}. Hunted: {}. Hunter's calling: {}. Lobby: {}\n" \
-                                              "Mobs: {}. Chests: {}. Walked: {}. Quests: {}. Time: {}\n" \
-                                              "{} {} {}\n{} {} {}\n{} {} {}\n{} {}".format(
-                                        nowPlayer, "y" if nowClass.gamemode.hunted else "n",
-                                        "y" if nowClass.quests.__contains__('A Hunter\'s Calling') else "n", lobby,
-                                        mobsKilled, chestsFound, blocksWalked, questsDone.__str__(), playTime,
-                                        alchemism, armouring, combat, cooking, farming, fishing, mining, tailoring,
-                                        weaponsmithing,
-                                        woodcutting, woodworking
-                                    )
-                                    app.warning(message)
+                                    if (mobsKilled := nowClass.mobsKilled - beforeClass.mobsKilled) > 0:
+                                        outputStr += "Mobs Killed: " + mobsKilled
+                                    if (chestsFound := nowClass.chestsFound - beforeClass.chestsFound) > 0:
+                                        outputStr += "Chests Opened: " + chestsFound
+                                    if (blocksWalked := nowClass.blocksWalked - beforeClass.blocksWalked) > 0:
+                                        outputStr += "Blocks Walked: " + blocksWalked
+                                    if len(questsDone := list(set(nowClass.quests) - set(beforeClass.quests))) > 0:
+                                        outputStr += "Quests Done: " + questsDone.__str__()
+                                    if (playtime := nowClass.playtime - beforeClass.playtime) > 0:
+                                        outputStr += "Playtime: " + playtime
+                                    outputStr += "Lobby: " + wynnApi.getLobbyPlayer(nowPlayer)
+
+                                    if  lazyOr((alchemismLvl := nowClass.alchemismLevel.level - beforeClass.alchemismLevel.level) > 0,
+                                               (alchemismXp := (0 if alchemismLvl > 0 else nowClass.alchemismLevel.xp - beforeClass.alchemismLevel.xp)) > 0):
+                                        outputStr += "Alchemism: {}LvL {}xp".format(alchemismLvl, alchemismXp)
+
+                                    if  lazyOr((armouringLvl := nowClass.armouringLevel.level - beforeClass.armouringLevel.level) > 0,
+                                               (armouringXp := (0 if armouringLvl > 0 else nowClass.armouringLevel.xp - beforeClass.armouringLevel.xp)) > 0):
+                                        outputStr += "Armouring: {}LvL {}xp".format(armouringLvl, armouringXp)
+
+                                    if  lazyOr((combatLvl := nowClass.combatLevel.level - beforeClass.combatLevel.level) > 0,
+                                               (combatXp := (0 if combatLvl > 0 else nowClass.combatLevel.xp - beforeClass.combatLevel.xp)) > 0):
+                                        outputStr += "Combat: {}LvL {}xp".format(combatLvl, combatXp)
+
+                                    if  lazyOr((combatLvl := nowClass.combatLevel.level - beforeClass.combatLevel.level) > 0,
+                                               (combatXp := (0 if combatLvl > 0 else nowClass.combatLevel.xp - beforeClass.combatLevel.xp)) > 0):
+                                        outputStr += "Combat: {}LvL {}xp".format(combatLvl, combatXp)
+
+                                    if  lazyOr((combatLvl := nowClass.combatLevel.level - beforeClass.combatLevel.level) > 0,
+                                               (combatXp := (0 if combatLvl > 0 else nowClass.combatLevel.xp - beforeClass.combatLevel.xp)) > 0):
+                                        outputStr += "Combat: {}LvL {}xp".format(combatLvl, combatXp)
+
+                                    if  lazyOr((fishingLvl := nowClass.fishingLevel.level - beforeClass.fishingLevel.level) > 0,
+                                               (fishingXp := (0 if fishingLvl > 0 else nowClass.fishingLevel.xp - beforeClass.fishingLevel.xp)) > 0):
+                                        outputStr += "Fishing: {}LvL {}xp".format(fishingLvl, fishingXp)
+
+                                    if  lazyOr((miningLvl := nowClass.miningLevel.level - beforeClass.miningLevel.level) > 0,
+                                               (miningXp := (0 if miningLvl > 0 else nowClass.miningLevel.xp - beforeClass.miningLevel.xp)) > 0):
+                                        outputStr += "Mining: {}LvL {}xp".format(miningLvl, miningXp)
+
+                                    if  lazyOr((tailoringLvl := nowClass.tailoringLevel.level - beforeClass.tailoringLevel.level) > 0,
+                                               (tailoringXp := (0 if tailoringLvl > 0 else nowClass.tailoringLevel.xp - beforeClass.tailoringLevel.xp)) > 0):
+                                        outputStr += "Taioloring: {}LvL {}xp".format(tailoringLvl, tailoringXp)
+
+                                    if  lazyOr((weaponsmithingLvl := nowClass.weaponsmithingLevel.level - beforeClass.weaponsmithingLevel.level) > 0,
+                                               (weaponsmithingXp := (0 if weaponsmithingLvl > 0 else nowClass.weaponsmithingLevel.xp - beforeClass.weaponsmithingLevel.xp)) > 0):
+                                        outputStr += "Weaponsmithing: {}LvL {}xp".format(weaponsmithingLvl, weaponsmithingXp)
+
+                                    if  lazyOr((woodworkingLvl := nowClass.woodworkingLevel.level - beforeClass.woodworkingLevel.level) > 0,
+                                               (woodworkingXp := (0 if woodworkingLvl > 0 else nowClass.woodworkingLevel.xp - beforeClass.woodworkingLevel.xp)) > 0):
+                                        outputStr += "Woodworking: {}LvL {}xp".format(woodworkingLvl, woodworkingXp)
+
+                                    if  lazyOr((woodcuttingLvl := nowClass.woodcuttingLevel.level - beforeClass.woodcuttingLevel.level) > 0,
+                                               (woodcuttingXp := (0 if woodcuttingLvl > 0 else nowClass.woodcuttingLevel.xp - beforeClass.woodcuttingLevel.xp)) > 0):
+                                        outputStr += "Woodcutting: {}LvL {}xp".format(woodcuttingLvl, woodcuttingXp)
+
+
+                                    app.warning(outputStr)
+                                    # @formatter:on
 
         prevTargets = targetStats
         time.sleep(10 * 60)

@@ -97,6 +97,17 @@ class wynnPy:
         response = self.requestManager.sendRequest(self.BASEURL + self.uList.getServerList())
         return response[world]
 
+    def getPlayersOnlineInWorlds(self, worlds):
+        world = ["WC" + str(x) if type(x) == int else
+                 "WC" + x if len(x) == 1 else x
+                 for x in worlds]
+        response = self.requestManager.sendRequest(self.BASEURL + self.uList.getServerList())
+        players = []
+        del response["request"]
+        for server in world:
+            players.extend(response[server])
+        return players
+
     def getClasses(self, name):
         response = self.requestManager.sendRequest(self.WEBURL + self.uList.getClasses(name))
         return response
@@ -108,7 +119,6 @@ class wynnPy:
     def getLobbyPlayer(self, name):
         response = self.requestManager.sendRequest(self.BASEURL + self.uList.getServerList())
         for server in response:
-            if response[server].__contains__("name"):
+            if response[server].__contains__(name):
                 return server
         return -1
-
