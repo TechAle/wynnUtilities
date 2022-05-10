@@ -1,5 +1,3 @@
-import time
-
 from api.RequestManager import requestManger
 from api.classes.Guild import guild
 from api.classes.Item import item

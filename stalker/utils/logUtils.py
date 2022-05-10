@@ -1,6 +1,6 @@
 import logging
 
-from stalker.utils import directoryUtils
+from stalker.utils import fileUtils
 
 formatter = logging.Formatter('[%(levelname)s] %(asctime)s - %(message)s', datefmt='%H:%M:%S')
 
@@ -18,7 +18,7 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 def createLogger():
-    directoryUtils.createIfNotExists("./logs")
+    fileUtils.createDirectoryIfNotExists("./logs")
 
     # Logger
     app = setup_logger('logger', './logs/app.log')

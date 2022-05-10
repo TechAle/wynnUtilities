@@ -52,8 +52,8 @@ class gamemode:
 
 class profClass:
     def __init__(self, dict):
-        self.level = dict["level"]
-        self.xp = dict["xp"]
+        self.level = dict["level"] if dict["level"] != None else 0
+        self.xp = dict["xp"] if dict["xp"] != None else 0
 
 class globals:
     def __init__(self, dict):

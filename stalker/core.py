@@ -6,12 +6,27 @@ from stalker.OptPlayerStats import optPlayerStats
 from stalker.ask import *
 from stalker.utils.operatorsUtils import *
 
+from stalker.utils import fileUtils
+
 
 class stalkerCore:
     def __init__(self, logger):
         # Init api
+        self.listPlayers = []
         self.wynnApi = api.WynnPy.wynnPy()
         self.logger = logger
+        # Load people that are not in hunted mode
+        self.loadNoHuntedPeople()
+
+    def loadNoHuntedPeople(self):
+        fileUtils.createDirectoryIfNotExists("data")
+        fileUtils.createFileIfNotExists("data/players.txt")
+        with open("data/players.txt") as fp:
+            Lines = fp.readlines()
+            for line in Lines:
+                if len(line := line.strip()) > 0:
+                    self.listPlayers.append(line)
+
 
     def askInformations(self):
         self.mode = askSingleOrWorld()
@@ -41,6 +56,16 @@ class stalkerCore:
                 self.wynnApi.getPlayersOnlineInWorld(self.toStalk) if type(self.toStalk) != list else \
                     self.wynnApi.getPlayersOnlineInWorlds(self.toStalk) if self.toStalk[0].isnumeric() else self.toStalk
             self.logger.info("Total players: {}".format(len(players)))
+            # Remove already known non-hunted players
+            nPlayers = len(players)
+            i = 0
+            while i < len(players):
+                if self.listPlayers.__contains__(players[i]):
+                    players.pop(i)
+                    i -= 1
+                    nPlayers -= 1
+                i += 1
+            self.logger.info("Total players after non-hunted: {}".format(len(players)))
             # Get targets with stats
             targetStats = self.getTargetStats(players)
             if prevTargets is not None:
@@ -54,7 +79,7 @@ class stalkerCore:
                                     # Found it, lets check if he was active
                                     if nowClass.blocksWalked != beforeClass.blocksWalked:
                                         # @formatter:off
-                                        outputStr = "{} Lobby: {} Hunted: {}\n".format(nowPlayer, self.wynnApi.getLobbyPlayer(nowPlayer), "y" if nowClass.gamemode.hunted else "n")
+                                        outputStr = "{} Lobby: {} Hunted: {} Class: {} Level: {}\n".format(nowPlayer, self.wynnApi.getLobbyPlayer(nowPlayer), "y" if nowClass.gamemode.hunted else "n", nowClass.className, nowClass.combatLevel.level)
                                         # Everything that changed
                                         if (mobsKilled := nowClass.mobsKilled - beforeClass.mobsKilled) > 0:
                                             outputStr += "Mobs Killed: " + str(mobsKilled) + "\n"
@@ -69,43 +94,43 @@ class stalkerCore:
 
                                         if  lazyOr((combatLvl := nowClass.combatLevel.level - beforeClass.combatLevel.level) > 0,
                                                    (combatXp := (0 if combatLvl > 0 else nowClass.combatLevel.xp - beforeClass.combatLevel.xp)) > 0):
-                                            outputStr += "Combat: {}LvL {}xp".format(combatLvl, combatXp) + "\n"
+                                            outputStr += "Combat: {}LvL {}xp Real: {}".format(combatLvl, combatXp, nowClass.combatLevel.level) + "\n"
 
                                         if  lazyOr((alchemismLvl := nowClass.alchemismLevel.level - beforeClass.alchemismLevel.level) > 0,
                                                    (alchemismXp := (0 if alchemismLvl > 0 else nowClass.alchemismLevel.xp - beforeClass.alchemismLevel.xp)) > 0):
-                                            outputStr += "Alchemism: {}LvL {}xp".format(alchemismLvl, alchemismXp) + "\n"
+                                            outputStr += "Alchemism: {}LvL {}xp Real: {}".format(alchemismLvl, alchemismXp, nowClass.alchemismLevel.level) + "\n"
 
                                         if  lazyOr((armouringLvl := nowClass.armouringLevel.level - beforeClass.armouringLevel.level) > 0,
                                                    (armouringXp := (0 if armouringLvl > 0 else nowClass.armouringLevel.xp - beforeClass.armouringLevel.xp)) > 0):
-                                            outputStr += "Armouring: {}LvL {}xp".format(armouringLvl, armouringXp) + "\n"
+                                            outputStr += "Armouring: {}LvL {}xp Real: {}".format(armouringLvl, armouringXp, nowClass.armouringLevel.level) + "\n"
 
                                         if  lazyOr((farmingLvl := nowClass.farmingLevel.level - beforeClass.farmingLevel.level) > 0,
                                                    (farmingXp := (0 if farmingLvl > 0 else nowClass.farmingLevel.xp - beforeClass.farmingLevel.xp)) > 0):
-                                            outputStr += "Farming: {}LvL {}xp".format(farmingLvl, farmingXp) + "\n"
+                                            outputStr += "Farming: {}LvL {}xp Real: {}".format(farmingLvl, farmingXp, nowClass.farmingLevel.level) + "\n"
 
                                         if  lazyOr((fishingLvl := nowClass.fishingLevel.level - beforeClass.fishingLevel.level) > 0,
                                                    (fishingXp := (0 if fishingLvl > 0 else nowClass.fishingLevel.xp - beforeClass.fishingLevel.xp)) > 0):
-                                            outputStr += "Fishing: {}LvL {}xp".format(fishingLvl, fishingXp) + "\n"
+                                            outputStr += "Fishing: {}LvL {}xp Real: {}".format(fishingLvl, fishingXp, nowClass.fishingLevel.level) + "\n"
 
                                         if  lazyOr((miningLvl := nowClass.miningLevel.level - beforeClass.miningLevel.level) > 0,
                                                    (miningXp := (0 if miningLvl > 0 else nowClass.miningLevel.xp - beforeClass.miningLevel.xp)) > 0):
-                                            outputStr += "Mining: {}LvL {}xp".format(miningLvl, miningXp) + "\n"
+                                            outputStr += "Mining: {}LvL {}xp Level: {}".format(miningLvl, miningXp, nowClass.miningLevel.level) + "\n"
 
                                         if  lazyOr((tailoringLvl := nowClass.tailoringLevel.level - beforeClass.tailoringLevel.level) > 0,
                                                    (tailoringXp := (0 if tailoringLvl > 0 else nowClass.tailoringLevel.xp - beforeClass.tailoringLevel.xp)) > 0):
-                                            outputStr += "Taioloring: {}LvL {}xp".format(tailoringLvl, tailoringXp) + "\n"
+                                            outputStr += "Taioloring: {}LvL {}xp Real: {}".format(tailoringLvl, tailoringXp, nowClass.tailoringLevel.level) + "\n"
 
                                         if  lazyOr((weaponsmithingLvl := nowClass.weaponsmithingLevel.level - beforeClass.weaponsmithingLevel.level) > 0,
                                                    (weaponsmithingXp := (0 if weaponsmithingLvl > 0 else nowClass.weaponsmithingLevel.xp - beforeClass.weaponsmithingLevel.xp)) > 0):
-                                            outputStr += "Weaponsmithing: {}LvL {}xp".format(weaponsmithingLvl, weaponsmithingXp) + "\n"
+                                            outputStr += "Weaponsmithing: {}LvL {}xp Real: {}".format(weaponsmithingLvl, weaponsmithingXp, nowClass.weaponsmithingLevel.level) + "\n"
 
                                         if  lazyOr((woodworkingLvl := nowClass.woodworkingLevel.level - beforeClass.woodworkingLevel.level) > 0,
                                                    (woodworkingXp := (0 if woodworkingLvl > 0 else nowClass.woodworkingLevel.xp - beforeClass.woodworkingLevel.xp)) > 0):
-                                            outputStr += "Woodworking: {}LvL {}xp".format(woodworkingLvl, woodworkingXp) + "\n"
+                                            outputStr += "Woodworking: {}LvL {}xp Real: {}".format(woodworkingLvl, woodworkingXp, nowClass.woodworkingLevel.level) + "\n"
 
                                         if  lazyOr((woodcuttingLvl := nowClass.woodcuttingLevel.level - beforeClass.woodcuttingLevel.level) > 0,
                                                    (woodcuttingXp := (0 if woodcuttingLvl > 0 else nowClass.woodcuttingLevel.xp - beforeClass.woodcuttingLevel.xp)) > 0):
-                                            outputStr += "Woodcutting: {}LvL {}xp".format(woodcuttingLvl, woodcuttingXp) + "\n"
+                                            outputStr += "Woodcutting: {}LvL {}xp Real: {}".format(woodcuttingLvl, woodcuttingXp, nowClass.woodcuttingLevel.level) + "\n"
 
 
                                         self.logger.warning(outputStr)
@@ -117,7 +142,7 @@ class stalkerCore:
                 self.toStalk = [x for x in prevTargets]
 
             self.logger.info("Waiting for refresh. Total target: {}".format(len(prevTargets)))
-            time.sleep(10 * 60)
+            time.sleep(1 * 60)
 
     def getTargetStats(self, players):
         playerStats = {}
@@ -126,7 +151,7 @@ class stalkerCore:
             ## For every players, get their stats
             for player in players:
 
-                classAdded, info = self.analysisPlayerClasses(player)
+                classAdded, info, oneHunted = self.analysisPlayerClasses(player)
 
                 ## Add to the dict optimized stats
                 if len(classAdded) > 0:
@@ -135,12 +160,21 @@ class stalkerCore:
                 else:
                     self.logger.info("Removed " + player)
 
+                    # We add him to this list only if he doesnt have hunter's calling or hunted.
+                    if not oneHunted:
+                        self.listPlayers.append(player)
+                        with open("data/players.txt", "a") as rf:
+                            rf.write(player + "\n")
+                            rf.close()
+
+
         # V3 api
         elif self.apiToUse == 2:
             pass
 
         return playerStats
 
+    # TODO: It works but it could be better
     def analysisPlayerClasses(self, player):
         while True:
             ## Get every stats
@@ -149,19 +183,24 @@ class stalkerCore:
                 break
             else:
                 self.logger.error("Rate limit exceed. Please wait")
-                time.sleep(5 * 60)
+                time.sleep(1 * 60)
 
         ## Classes that are going to be added
         classAdded = []
+        oneHunted = False
         info = ""
-        if statsPlayer.meta.online:
-            ## Check every class
-            for classWynn in statsPlayer.classes:
-                if self.isTarget(classWynn):
-                    classAdded.append((toAdd := optPlayerStats(classWynn, statsPlayer.timeStamp)))
-                    info += ("y " if toAdd.gamemode.hunted else "n ") + toAdd.className + "|"
+        ## Check every class
+        for classWynn in statsPlayer.classes:
+            toAdd = optPlayerStats(classWynn, statsPlayer.timeStamp)
+            if self.isTarget(classWynn):
+                classAdded.append(toAdd)
+                info += ("y " if toAdd.gamemode.hunted else "n ") + toAdd.className + "|"
+                oneHunted = True
+        # So, if this guy now is offline, we set classAdded to none
+        if not statsPlayer.meta.online:
+            classAdded = []
         info = '[' + info + ']'
-        return classAdded, info
+        return classAdded, info, oneHunted
 
     def isTarget(self, stats):
         return stats.gamemode.hunted or (self.hunterCalling and stats.quests.__contains__('A Hunter\'s Calling'))
