@@ -1,3 +1,5 @@
+import time
+
 from api.RequestManager import requestManger
 from api.classes.Guild import guild
 from api.classes.Item import item
@@ -79,9 +81,13 @@ class wynnPy:
         return response
 
     def getPlayerStats(self, name):
-        response = self.requestManager.sendRequest(self.BASEURL + self.uList.getPlayerStats(name))
-        response["data"][0]["timestamp"] = response["timestamp"]
-        return playerStats(response["data"][0])
+        while True:
+            response = self.requestManager.sendRequest(self.BASEURL + self.uList.getPlayerStats(name))
+            if not response.__contains__("message") or response["message"] != "API rate limit exceeded":
+                response["data"][0]["timestamp"] = response["timestamp"]
+                return playerStats(response["data"][0])
+            else:
+                return False
 
     def getPlayersOnline(self):
         response = self.requestManager.sendRequest(self.BASEURL + self.uList.getServerList())
@@ -99,7 +105,7 @@ class wynnPy:
 
     def getPlayersOnlineInWorlds(self, worlds):
         world = ["WC" + str(x) if type(x) == int else
-                 "WC" + x if len(x) == 1 else x
+                 "WC" + x if x.isnumeric() else x
                  for x in worlds]
         response = self.requestManager.sendRequest(self.BASEURL + self.uList.getServerList())
         players = []

@@ -30,7 +30,7 @@ class stalkerCore:
             self.toStalk= askPlayerToStalk()
             self.focus = False
 
-        self.logger("Set up new stalker: Mode: {} Api: {} Hunter's Calling: {} Target: {} Focus: {}"
+        self.logger.info("Set up new stalker: Mode: {} Api: {} Hunter's Calling: {} Target: {} Focus: {}"
                     .format(self.mode, self.apiToUse, self.hunterCalling, self.toStalk, self.focus))
 
     def startStalking(self):
@@ -40,6 +40,7 @@ class stalkerCore:
             players = self.wynnApi.getPlayersOnline() if self.toStalk == "all" else \
                 self.wynnApi.getPlayersOnlineInWorld(self.toStalk) if type(self.toStalk) != list else \
                     self.wynnApi.getPlayersOnlineInWorlds(self.toStalk) if self.toStalk[0].isnumeric() else self.toStalk
+            self.logger.info("Total players: {}".format(len(players)))
             # Get targets with stats
             targetStats = self.getTargetStats(players)
             if prevTargets is not None:
@@ -115,7 +116,7 @@ class stalkerCore:
             if self.focus:
                 self.toStalk = [x for x in prevTargets]
 
-            self.logger("Waiting for refresh")
+            self.logger.info("Waiting for refresh. Total target: {}".format(len(prevTargets)))
             time.sleep(10 * 60)
 
     def getTargetStats(self, players):
@@ -141,8 +142,15 @@ class stalkerCore:
         return playerStats
 
     def analysisPlayerClasses(self, player):
-        ## Get every stats
-        statsPlayer = self.wynnApi.getPlayerStats(player)
+        while True:
+            ## Get every stats
+            statsPlayer = self.wynnApi.getPlayerStats(player)
+            if type(statsPlayer) != bool:
+                break
+            else:
+                self.logger.error("Rate limit exceed. Please wait")
+                time.sleep(5 * 60)
+
         ## Classes that are going to be added
         classAdded = []
         info = ""
