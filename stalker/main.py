@@ -10,10 +10,9 @@ from stalker.utils import directoryUtils, logUtils
 
 directoryUtils.createIfNotExists("./logs")
 
-
-
-
-
+# Logger
+app = logUtils.setup_logger('logger', './logs/app.log')
+app.info("Started new session")
 
 def main():
     # Init api

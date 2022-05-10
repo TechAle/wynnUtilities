@@ -56,7 +56,7 @@ def stalkPlayers(wynnApi, toStalk, apiToUse, hunterCalling, focus):
         # Get players
         players = wynnApi.getPlayersOnline() if toStalk == "all" else \
             wynnApi.getPlayersOnlineInWorld(toStalk) if type(toStalk) != list else \
-                toStalk
+                wynnApi.getPlayersOnlineInWorlds(toStalk) if toStalk[0].isnumeric() else toStalk
         # Get targets with stats
         targetStats = getTargetStats(players, apiToUse, wynnApi, hunterCalling)
         if prevTargets is not None:
@@ -135,6 +135,6 @@ def stalkPlayers(wynnApi, toStalk, apiToUse, hunterCalling, focus):
         prevTargets = targetStats
 
         if focus:
-            pass
+            toStalk = [x for x in prevTargets]
 
         time.sleep(10 * 60)
