@@ -3,20 +3,44 @@ import time
 import api.WynnPy
 from stalker.OptPlayerStats import optPlayerStats
 
-from stalker.ask import *
+from stalker.utils.askUtils import *
 from stalker.utils.operatorsUtils import *
 
 from stalker.utils import fileUtils
+import threading
+
+
+def isTarget(stats, hunterCallingCheck):
+    return stats.gamemode.hunted or (hunterCallingCheck and stats.quests.__contains__('A Hunter\'s Calling'))
+
+
+def getPlayerClasses(wynnApi, player, logger = None):
+    while True:
+        ## Get every stats
+        statsPlayer = wynnApi.getPlayerStats(player)
+        if type(statsPlayer) != bool:
+            break
+        else:
+            if logger is not None:
+                logger.error("Rate limit exceed. Please wait")
+            time.sleep(0.5 * 60)
+    return statsPlayer
 
 
 class stalkerCore:
     def __init__(self, logger):
         # Init api
-        self.listPlayers = []
         self.wynnApi = api.WynnPy.wynnPy()
+        # Logger
         self.logger = logger
+        # If the stalker is running
+        self.on = self.running = False
+        # Players that are not in hunted mode
+        self.listPlayers = []
         # Load people that are not in hunted mode
         self.loadNoHuntedPeople()
+        # Ask informations
+        self.askInformations()
 
     def loadNoHuntedPeople(self):
         fileUtils.createDirectoryIfNotExists("data")
@@ -27,34 +51,47 @@ class stalkerCore:
                 if len(line := line.strip()) > 0:
                     self.listPlayers.append(line)
 
-
     def askInformations(self):
-        self.mode = askSingleOrWorld()
 
-        # Ask for the api
-        self.apiToUse = askApi()
+        # noinspection PyAttributeOutsideInit
+        self.mode = generalStringAsk("s) Single\nw) Worlds", ["s", "w"])
 
-        # Ask for checking hunter's calling
-        self.hunterCalling = askHunterCalling()
+        ## Ask for the api
+        # noinspection PyAttributeOutsideInit
+        self.apiToUse = generalIntAsk("Api:\n1) v2\n2) v3\nChoose:", 2)
+
+        ## Ask for checking hunter's calling
+        # noinspection PyAttributeOutsideInit
+        self.hunterCalling = generalStringAsk("Hunter's calling (y/n)?", ["y", "n"], "y")
 
         if self.mode == "w":
-            # Ask for the server
+            ## Ask for the server
+            # noinspection PyAttributeOutsideInit
             self.toStalk = askServer()
-            self.focus = askFocus()
+            # noinspection PyAttributeOutsideInit
+            self.focus = generalStringAsk("Focus (y/n)?", ["y", "n"], "y")
         else:
-            self.toStalk= askPlayerToStalk()
+            # noinspection PyAttributeOutsideInit
+            self.toStalk = askPlayerToStalk()
+            # noinspection PyAttributeOutsideInit
             self.focus = False
 
         self.logger.info("Set up new stalker: Mode: {} Api: {} Hunter's Calling: {} Target: {} Focus: {}"
-                    .format(self.mode, self.apiToUse, self.hunterCalling, self.toStalk, self.focus))
+                         .format(self.mode, self.apiToUse, self.hunterCalling, self.toStalk, self.focus))
+
+    def startStalkingThread(self):
+        threading.Thread(target=self.startStalking).start()
 
     def startStalking(self):
         prevTargets = None
+        self.on = self.running = True
         while True:
+            if not self.on:
+                break
             # Get players
             players = self.wynnApi.getPlayersOnline() if self.toStalk == "all" else \
-                self.wynnApi.getPlayersOnlineInWorld(self.toStalk) if type(self.toStalk) != list else \
-                    self.wynnApi.getPlayersOnlineInWorlds(self.toStalk) if self.toStalk[0].isnumeric() else self.toStalk
+                      self.wynnApi.getPlayersOnlineInWorld(self.toStalk) if type(self.toStalk) != list else \
+                      self.wynnApi.getPlayersOnlineInWorlds(self.toStalk) if self.toStalk[0].isnumeric() else self.toStalk
             self.logger.info("Total players: {}".format(len(players)))
             # Remove already known non-hunted players
             nPlayers = len(players)
@@ -132,8 +169,11 @@ class stalkerCore:
                                                    (woodcuttingXp := (0 if woodcuttingLvl > 0 else nowClass.woodcuttingLevel.xp - beforeClass.woodcuttingLevel.xp)) > 0):
                                             outputStr += "Woodcutting: {}LvL {}xp Real: {}".format(woodcuttingLvl, woodcuttingXp, nowClass.woodcuttingLevel.level) + "\n"
 
+                                        if nowClass.gamemode.hunted:
+                                            self.logger.log(36, outputStr)
 
-                                        self.logger.warning(outputStr)
+                                        else:
+                                            self.logger.log(35, outputStr)
                                         # @formatter:on
 
             prevTargets = targetStats
@@ -142,7 +182,7 @@ class stalkerCore:
                 self.toStalk = [x for x in prevTargets]
 
             self.logger.info("Waiting for refresh. Total target: {}".format(len(prevTargets)))
-            time.sleep(1 * 60)
+            time.sleep(0.25 * 60)
 
     def getTargetStats(self, players):
         playerStats = {}
@@ -174,16 +214,10 @@ class stalkerCore:
 
         return playerStats
 
-    # TODO: It works but it could be better
+    # TODO: It works but it could coded be better
     def analysisPlayerClasses(self, player):
-        while True:
-            ## Get every stats
-            statsPlayer = self.wynnApi.getPlayerStats(player)
-            if type(statsPlayer) != bool:
-                break
-            else:
-                self.logger.error("Rate limit exceed. Please wait")
-                time.sleep(1 * 60)
+
+        statsPlayer = getPlayerClasses(self.wynnApi, player, self.logger)
 
         ## Classes that are going to be added
         classAdded = []
@@ -192,15 +226,14 @@ class stalkerCore:
         ## Check every class
         for classWynn in statsPlayer.classes:
             toAdd = optPlayerStats(classWynn, statsPlayer.timeStamp)
-            if self.isTarget(classWynn):
+            if isTarget(classWynn, self.hunterCalling):
                 classAdded.append(toAdd)
                 info += ("y " if toAdd.gamemode.hunted else "n ") + toAdd.className + "|"
+                oneHunted = True
+            elif isTarget(classWynn, True):
                 oneHunted = True
         # So, if this guy now is offline, we set classAdded to none
         if not statsPlayer.meta.online:
             classAdded = []
         info = '[' + info + ']'
         return classAdded, info, oneHunted
-
-    def isTarget(self, stats):
-        return stats.gamemode.hunted or (self.hunterCalling and stats.quests.__contains__('A Hunter\'s Calling'))
