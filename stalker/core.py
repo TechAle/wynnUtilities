@@ -24,11 +24,15 @@ def getPlayerClasses(wynnApi, player, logger=None):
             if not statsPlayer:
                 if logger is not None:
                     logger.error("Rate limit exceed. Please wait")
-                time.sleep(0.5 * 60)
+                time.sleep(60 - int(time.strftime("%S")))
             else:
                 return None
     return statsPlayer
 
+# https://stackoverflow.com/questions/2130016/splitting-a-list-into-n-parts-of-approximately-equal-length
+def split(a, n):
+    k, m = divmod(len(a), n)
+    return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
 
 class stalkerCore:
     def __init__(self, logger, mainThread, RPC):
@@ -42,6 +46,8 @@ class stalkerCore:
         self.logger = logger
         # If the stalker is running
         self.on = self.running = False
+        # Locker for multithreading
+        self.lock = threading.Lock()
         # Players that are not in hunted mode
         self.listPlayers = []
         # Load people that are not in hunted mode
@@ -70,6 +76,9 @@ class stalkerCore:
         ## Ask for checking hunter's calling
         # noinspection PyAttributeOutsideInit
         self.hunterCalling = generalStringAsk("Hunter's calling (y/n)?", ["y", "n"], "y")
+
+        # noinspection PyAttributeOutsideInit
+        self.multiThreading = generalIntAsk("Multithreading? (N^ threads) ", 50)
 
         if self.mode == "w":
             ## Ask for the server
@@ -108,7 +117,26 @@ class stalkerCore:
             self.logger.info("Total players after non-hunted: {}".format(len(players)))
             self.RPC.increasePlayer(len(players))
             # Get targets with stats
-            targetStats = self.getTargetStats(players)
+            ## Split array for multithreading
+            everyArrays = list(split(players, self.multiThreading))
+
+            # This is a really cool way. I would use another way for this but i mean, you always learn new things
+            ## https://stackoverflow.com/questions/6893968/how-to-get-the-return-value-from-a-thread-in-python
+            threads = []
+            results = [0] * self.multiThreading
+            for i in range(self.multiThreading):
+                threads.append(threading.Thread(target=self.getTargetStats, args=(everyArrays[i], results, i)))
+                threads[i].start()
+
+            for i in range(self.multiThreading):
+                threads[i].join()
+
+            targetStats = {}
+
+            for i in range(len(results)):
+                for player in results[i]:
+                    targetStats[player] = results[i][player]
+
             if prevTargets is not None:
                 # Search for the name of the player we are checking
                 for nowPlayer in targetStats:
@@ -190,9 +218,9 @@ class stalkerCore:
                 self.toStalk = [x for x in prevTargets]
 
             self.logger.info("Waiting for refresh. Total target: {}".format(len(prevTargets)))
-            time.sleep(0.25 * 60)
+            time.sleep(60 - int(time.strftime("%S")))
 
-    def getTargetStats(self, players):
+    def getTargetStats(self, players, results, i):
         playerStats = {}
         # V2 api
         if self.apiToUse == 1:
@@ -203,14 +231,18 @@ class stalkerCore:
 
                 ## Add to the dict optimized stats
                 if len(classAdded) > 0:
-                    self.logger.warning("Found possible target: {}. info: {}".format(player, info))
+                    threading.Thread(target=lambda: self.logger.warning("Found possible target: {}. info: {}".format(player, info))).start()
                     playerStats[player] = classAdded
                 else:
-                    self.logger.info("Removed " + player)
+                    threading.Thread(target=lambda: self.logger.info("Removed " + player)).start()
 
                     # We add him to this list only if he doesnt have hunter's calling or hunted.
                     if not oneHunted:
-                        self.listPlayers.append(player)
+                        self.lock.acquire()
+                        try:
+                            self.listPlayers.append(player)
+                        finally:
+                            self.lock.release()
                         with open("data/players.txt", "a") as rf:
                             rf.write(player + "\n")
                             rf.close()
@@ -220,7 +252,7 @@ class stalkerCore:
         elif self.apiToUse == 2:
             pass
 
-        return playerStats
+        results[i] = playerStats
 
     # TODO: It works but it could coded be better
     def analysisPlayerClasses(self, player):
