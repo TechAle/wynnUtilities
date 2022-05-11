@@ -3,8 +3,11 @@ from stalker.utils import logUtils
 from stalker.utils.askUtils import generalIntAsk
 import api.WynnPy
 import sys
+from stalker.discordRPC import RPC
+import threading
 
 stalker = None
+dRPC = None
 
 app = logUtils.createLogger()
 
@@ -12,7 +15,7 @@ app = logUtils.createLogger()
 def startBot():
     global stalker
     if stalker is None:
-        stalker = stalkerCore(app)
+        stalker = stalkerCore(app, threading.currentThread(), dRPC)
     if not stalker.running:
         stalker.startStalkingThread()
 
@@ -82,6 +85,7 @@ def stop():
 
 
 if __name__ == "__main__":
+    dRPC = RPC(threading.currentThread())
     while True:
         {
             1: startBot,

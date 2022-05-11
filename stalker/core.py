@@ -28,9 +28,13 @@ def getPlayerClasses(wynnApi, player, logger = None):
 
 
 class stalkerCore:
-    def __init__(self, logger):
+    def __init__(self, logger, mainThread, RPC):
         # Init api
         self.wynnApi = api.WynnPy.wynnPy()
+        # Mainthread
+        self.mainThread = mainThread
+        # RPC
+        self.RPC = RPC
         # Logger
         self.logger = logger
         # If the stalker is running
@@ -85,9 +89,7 @@ class stalkerCore:
     def startStalking(self):
         prevTargets = None
         self.on = self.running = True
-        while True:
-            if not self.on:
-                break
+        while self.on and self.mainThread.is_alive():
             # Get players
             players = self.wynnApi.getPlayersOnline() if self.toStalk == "all" else \
                       self.wynnApi.getPlayersOnlineInWorld(self.toStalk) if type(self.toStalk) != list else \
@@ -103,6 +105,7 @@ class stalkerCore:
                     nPlayers -= 1
                 i += 1
             self.logger.info("Total players after non-hunted: {}".format(len(players)))
+            self.RPC.increasePlayer(len(players))
             # Get targets with stats
             targetStats = self.getTargetStats(players)
             if prevTargets is not None:
