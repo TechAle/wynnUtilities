@@ -82,8 +82,11 @@ class wynnPy:
         while True:
             response = self.requestManager.sendRequest(self.BASEURL + self.uList.getPlayerStats(name))
             if not response.__contains__("message") or response["message"] != "API rate limit exceeded":
-                response["data"][0]["timestamp"] = response["timestamp"]
-                return playerStats(response["data"][0])
+                try :
+                    response["data"][0]["timestamp"] = response["timestamp"]
+                    return playerStats(response["data"][0])
+                except IndexError:
+                    return True
             else:
                 return False
 

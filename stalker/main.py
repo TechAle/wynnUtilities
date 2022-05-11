@@ -76,6 +76,7 @@ def fixDuplicatedPlayers():
     writePlayers(getPlayers())
 
 def updateNonHunted():
+    apiWynn = api.WynnPy.wynnPy()
     players = getPlayers()
 
     writePlayers(players)

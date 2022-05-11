@@ -14,16 +14,19 @@ def isTarget(stats, hunterCallingCheck):
     return stats.gamemode.hunted or (hunterCallingCheck and stats.quests.__contains__('A Hunter\'s Calling'))
 
 
-def getPlayerClasses(wynnApi, player, logger = None):
+def getPlayerClasses(wynnApi, player, logger=None):
     while True:
         ## Get every stats
         statsPlayer = wynnApi.getPlayerStats(player)
         if type(statsPlayer) != bool:
             break
         else:
-            if logger is not None:
-                logger.error("Rate limit exceed. Please wait")
-            time.sleep(0.5 * 60)
+            if not statsPlayer:
+                if logger is not None:
+                    logger.error("Rate limit exceed. Please wait")
+                time.sleep(0.5 * 60)
+            else:
+                return None
     return statsPlayer
 
 
@@ -92,8 +95,8 @@ class stalkerCore:
         while self.on and self.mainThread.is_alive():
             # Get players
             players = self.wynnApi.getPlayersOnline() if self.toStalk == "all" else \
-                      self.wynnApi.getPlayersOnlineInWorld(self.toStalk) if type(self.toStalk) != list else \
-                      self.wynnApi.getPlayersOnlineInWorlds(self.toStalk) if self.toStalk[0].isnumeric() else self.toStalk
+                self.wynnApi.getPlayersOnlineInWorld(self.toStalk) if type(self.toStalk) != list else \
+                    self.wynnApi.getPlayersOnlineInWorlds(self.toStalk) if self.toStalk[0].isnumeric() else self.toStalk
             self.logger.info("Total players: {}".format(len(players)))
             # Remove already known non-hunted players
             nPlayers = len(players)
@@ -118,6 +121,10 @@ class stalkerCore:
                                 if nowClass.className == beforeClass.className:
                                     # Found it, lets check if he was active
                                     if nowClass.blocksWalked != beforeClass.blocksWalked:
+
+                                        if nowClass.gamemode.hunted:
+                                            self.RPC.increaseHunted()
+
                                         # @formatter:off
                                         outputStr = "{} Lobby: {} Hunted: {} Class: {} Level: {}\n".format(nowPlayer, self.wynnApi.getLobbyPlayer(nowPlayer), "y" if nowClass.gamemode.hunted else "n", nowClass.className, nowClass.combatLevel.level)
                                         # Everything that changed
@@ -221,6 +228,9 @@ class stalkerCore:
     def analysisPlayerClasses(self, player):
 
         statsPlayer = getPlayerClasses(self.wynnApi, player, self.logger)
+
+        if statsPlayer == None:
+            return [], "", False
 
         ## Classes that are going to be added
         classAdded = []
