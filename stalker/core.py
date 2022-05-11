@@ -99,13 +99,11 @@ class stalkerCore:
                     self.wynnApi.getPlayersOnlineInWorlds(self.toStalk) if self.toStalk[0].isnumeric() else self.toStalk
             self.logger.info("Total players: {}".format(len(players)))
             # Remove already known non-hunted players
-            nPlayers = len(players)
             i = 0
             while i < len(players):
                 if self.listPlayers.__contains__(players[i]):
                     players.pop(i)
                     i -= 1
-                    nPlayers -= 1
                 i += 1
             self.logger.info("Total players after non-hunted: {}".format(len(players)))
             self.RPC.increasePlayer(len(players))
