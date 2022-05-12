@@ -6,6 +6,7 @@ from api.classes.Player import player
 from api.classes.PlayerStats import playerStats, wynnClass
 from api.classes.Territory import territory
 from api.urls.UrlList import urlList
+import time
 
 
 class wynnPy:
@@ -131,9 +132,13 @@ class wynnPy:
         return -1
 
 def sendRequest(url):
-    # make the request
-    r = requests.get(url)
-    # get the data
-    json = r.json()
+    while True:
+        # make the request
+        r = requests.get(url)
+        if r.reason == 503:
+            print("Service down, waiting")
+            time.sleep(60)
+        # get the data
+        json = r.json()
 
-    return json
+        return json
