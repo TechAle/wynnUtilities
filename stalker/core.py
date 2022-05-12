@@ -9,6 +9,8 @@ from stalker.utils.operatorsUtils import *
 from stalker.utils import fileUtils
 import threading
 
+from stalker.utils.logUtils import createLogger
+
 
 def isTarget(stats, hunterCallingCheck):
     return stats.gamemode.hunted or (hunterCallingCheck and stats.quests.__contains__('A Hunter\'s Calling'))
@@ -44,6 +46,9 @@ class stalkerCore:
         self.RPC = RPC
         # Logger
         self.logger = logger
+        # Logger for hunted people
+        self.loggerHunded = createLogger("hunted")
+        self.loggerHunters = createLogger("hunters")
         # If the stalker is running
         self.on = self.running = False
         # Locker for multithreading
@@ -207,9 +212,10 @@ class stalkerCore:
 
                                         if nowClass.gamemode.hunted:
                                             self.logger.log(36, outputStr)
-
+                                            self.loggerHunded.log(36, outputStr)
                                         else:
                                             self.logger.log(35, outputStr)
+                                            self.loggerHunters.log(35, outputStr)
                                         # @formatter:on
 
             prevTargets = targetStats

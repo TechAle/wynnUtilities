@@ -41,10 +41,10 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 
-def createLogger():
+def createLogger(name):
     fileUtils.createDirectoryIfNotExists("./logs")
 
     # Logger
-    app = setup_logger('logger', './logs/app.log')
+    app = setup_logger(name, './logs/'+name+'.log')
     app.info("Started new session")
     return app

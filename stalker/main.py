@@ -9,7 +9,7 @@ import threading
 stalker = None
 dRPC = None
 
-app = logUtils.createLogger()
+app = logUtils.createLogger("app")
 
 
 def startBot():
