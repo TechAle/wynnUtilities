@@ -1,9 +1,13 @@
-# wynnStalker
+# wynnUtils
 ## What is this?
-Wynnstalker is a program that fetch every people informations from the wynncraft api<br>
-and track what they are doing. [Video](https://youtu.be/HCt_tCvpaD0)
-## Why is this useful?
-You can easely know who is using hunted mode and what they are doing by using this.
+wynnUtils is a collection of scripts that use the wynncraft's api for obtaining certain thing.
+## Features
+- Stalker<br>
+    Useful for checking what everyone is doing on wynncraft, in particular for tracking hunted people
+- Checker<br>
+    Want to do your prof without hunters killing you? Use this script for getting notified when a possible hunter join your server.
+- Crafter<br>
+    Find the perfect crafted item of your wishes
 ## How to use this?
 - Install python 3.9
 - pip install requirements.txt
