@@ -3,6 +3,7 @@ import time
 
 import api.WynnPy
 from stalker.OptPlayerStats import optPlayerStats
+from stalker.utils import fileUtils
 from stalker.utils.askUtils import generalIntAsk
 from stalker.utils.wynnUtils import getPlayerClasses, getLobbyPlayer
 from stalker.utils.discordUtils import sendMessageWebhook
@@ -18,12 +19,17 @@ class checkerCore:
         self.on = self.running = False
         # Ask informations
         self.askInformations()
-        self.playerPing = self.getPingList()
+        self.loadPingList()
 
-    def getPingList(self):
-
-
-        return []
+    def loadPingList(self):
+        self.pingList = []
+        fileUtils.createDirectoryIfNotExists("data")
+        fileUtils.createFileIfNotExists("data/ping.txt")
+        with open("data/ping.txt") as fp:
+            Lines = fp.readlines()
+            for line in Lines:
+                if len(line := line.strip()) > 0:
+                    self.pingList.append(line)
 
     # noinspection PyAttributeOutsideInit
     def askInformations(self):
@@ -40,6 +46,14 @@ class checkerCore:
 
         self.level = playerClasses.classes[output].combatLevel.level
         self.name = playerClasses.classes[output].name
+
+    def updatePlayerInformations(self):
+        # Get player classes
+        playerClasses = getPlayerClasses(self.wynnApi, self.player.strip())
+        # Update level
+        for wynnClass in playerClasses:
+            if wynnClass.name == self.name:
+                self.level = wynnClass.combatLevel.level
 
     def startCheckerThread(self):
         threading.Thread(target=self.startChecking).start()
@@ -60,7 +74,7 @@ class checkerCore:
                     possibleHunter, sureHunter = self.isHunter(player)
                     if possibleHunter:
                         sendMessageWebhook("Possible hunter joined: " + player, self.webhook,
-                                           ping=self.playerPing.__contains__(player) or sureHunter)
+                                           ping=self.pingList.__contains__(player) or sureHunter)
                 playersChecked.append(player)
             time.sleep(60)
 
