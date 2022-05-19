@@ -11,25 +11,8 @@ import threading
 
 from stalker.utils.logUtils import createLogger
 
+from stalker.utils.wynnUtils import *
 
-def isTarget(stats, hunterCallingCheck):
-    return stats.gamemode.hunted or (hunterCallingCheck and stats.quests.__contains__('A Hunter\'s Calling'))
-
-
-def getPlayerClasses(wynnApi, player, logger=None):
-    while True:
-        ## Get every stats
-        statsPlayer = wynnApi.getPlayerStats(player)
-        if type(statsPlayer) != bool:
-            break
-        else:
-            if not statsPlayer:
-                if logger is not None:
-                    logger.error("Rate limit exceed. Please wait")
-                time.sleep(60 - int(time.strftime("%S")))
-            else:
-                return None
-    return statsPlayer
 
 # https://stackoverflow.com/questions/2130016/splitting-a-list-into-n-parts-of-approximately-equal-length
 def split(a, n):
@@ -69,32 +52,26 @@ class stalkerCore:
                 if len(line := line.strip()) > 0:
                     self.listPlayers.append(line)
 
+    # noinspection PyAttributeOutsideInit
     def askInformations(self):
 
-        # noinspection PyAttributeOutsideInit
         self.mode = generalStringAsk("s) Single\nw) Worlds", ["s", "w"])
 
-        ## Ask for the api
-        # noinspection PyAttributeOutsideInit
+        # Ask for the api
         self.apiToUse = generalIntAsk("Api:\n1) v2\n2) v3\nChoose:", 2)
 
-        ## Ask for checking hunter's calling
-        # noinspection PyAttributeOutsideInit
+        # Ask for checking hunter's calling
         self.hunterCalling = generalStringAsk("Hunter's calling (y/n)?", ["y", "n"], "y")
 
         # noinspection PyAttributeOutsideInit
         self.multiThreading = generalIntAsk("Multithreading? (N^ threads) ", 50)
 
         if self.mode == "w":
-            ## Ask for the server
-            # noinspection PyAttributeOutsideInit
+            # Ask for the server
             self.toStalk = askServer()
-            # noinspection PyAttributeOutsideInit
             self.focus = generalStringAsk("Focus (y/n)?", ["y", "n"], "y")
         else:
-            # noinspection PyAttributeOutsideInit
             self.toStalk = askPlayerToStalk()
-            # noinspection PyAttributeOutsideInit
             self.focus = False
 
         self.logger.info("Set up new stalker: Mode: {} Api: {} Hunter's Calling: {} Target: {} Focus: {}"

@@ -135,9 +135,10 @@ def sendRequest(url):
     while True:
         # make the request
         r = requests.get(url)
-        if r.reason == 503:
+        if r.status_code == 503:
             print("Service down, waiting")
             time.sleep(60)
+            continue
         # get the data
         json = r.json()
 

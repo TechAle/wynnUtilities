@@ -1,4 +1,6 @@
 import time
+
+import pypresence
 from pypresence import Presence
 import threading
 
@@ -10,9 +12,12 @@ class RPC:
         self.client_id = "973942027563712632"
         self.state = 0
         self.hunted = 0
-        self.RPC = Presence(self.client_id)
-        self.RPC.connect()
-        threading.Thread(target=self.run).start()
+        try:
+            self.RPC = Presence(self.client_id)
+            self.RPC.connect()
+            threading.Thread(target=self.run).start()
+        except pypresence.exceptions.DiscordNotFound:
+            pass
 
     def stop(self):
         self.on = False

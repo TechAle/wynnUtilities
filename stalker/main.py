@@ -1,4 +1,5 @@
-from stalker.core import stalkerCore, getPlayerClasses, isTarget
+from stalker.coreChecker import checkerCore
+from stalker.coreStalker import stalkerCore, getPlayerClasses, isTarget
 from stalker.utils import logUtils
 from stalker.utils.askUtils import generalIntAsk
 import api.WynnPy
@@ -7,6 +8,7 @@ from stalker.discordRPC import RPC
 import threading
 
 stalker = None
+checker = None
 dRPC = None
 
 app = logUtils.createLogger("app")
@@ -24,6 +26,20 @@ def stopBot():
     # noinspection PyUnresolvedReferences
     if stalker is not None and stalker.on:
         stalker.on = False
+
+
+def startChecker():
+    global checker
+    if checker is None:
+        checker = checkerCore(threading.currentThread())
+
+    if not checker.running:
+        checker.startCheckerThread()
+
+def endChecker():
+    # noinspection PyUnresolvedReferences
+    if checker is not None and checker.on:
+        checker.on = False
 
 
 def checkInfoPlayer():
@@ -115,7 +131,9 @@ if __name__ == "__main__":
             3: checkInfoPlayer,
             4: fixDuplicatedPlayers,
             5: updateNonHunted,
-            6: stop
+            6: startChecker,
+            7: endChecker,
+            8: stop
         }[generalIntAsk(
-            "1) Start bot\n2) Stop bot\n3) Check info\n4) Fix duplicates\n5) Update non hunted\n6) Stop\nChoose: ",
-            6)]()
+            "1) Start bot\n2) Stop bot\n3) Check info\n4) Fix duplicates\n5) Update non hunted\n6) Start Checker\n7) End Checker\n8) Stop\nChoose: ",
+            8)]()
