@@ -1,6 +1,6 @@
 import logging
 
-from stalker.utils import fileUtils
+from utils import fileUtils
 
 formatter = logging.Formatter('[%(levelname)s] %(asctime)s - %(message)s', datefmt='%H:%M:%S')
 HUNTED_LEVEL_NUM = 36
@@ -42,9 +42,12 @@ def setup_logger(name, log_file, level=logging.INFO):
 
 
 def createLogger(name):
-    fileUtils.createDirectoryIfNotExists("./logs")
+    if len(name.split("/")) > 1:
+        fileUtils.createDirectoryIfNotExists("./" + name.split("/")[1] + "/logs")
+        app = setup_logger(name, name + '.log')
+    else:
+        fileUtils.createDirectoryIfNotExists("./logs")
+        app = setup_logger(name, './logs/' + name + '.log')
 
-    # Logger
-    app = setup_logger(name, './logs/'+name+'.log')
     app.info("Started new session")
     return app

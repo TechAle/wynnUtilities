@@ -1,7 +1,7 @@
-from stalker.coreChecker import checkerCore
+from checker.coreChecker import checkerCore
 from stalker.coreStalker import stalkerCore, getPlayerClasses, isTarget
-from stalker.utils import logUtils
-from stalker.utils.askUtils import generalIntAsk
+from utils import logUtils
+from utils.askUtils import generalIntAsk
 import api.WynnPy
 import sys
 from stalker.discordRPC import RPC
@@ -74,7 +74,7 @@ def checkInfoPlayer():
 def getPlayers():
     players = []
 
-    with open("data/players.txt", "r") as fp:
+    with open("stalker/data/players.txt", "r") as fp:
         Lines = fp.readlines()
         for line in Lines:
             if len(line := line.strip()) > 0:
@@ -85,7 +85,7 @@ def getPlayers():
 
 
 def writePlayers(players):
-    with open("data/players.txt", "w") as fp:
+    with open("stalker/data/players.txt", "w") as fp:
         for player in players:
             fp.write(player + "\n")
         fp.close()

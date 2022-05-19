@@ -2,11 +2,11 @@ import threading
 import time
 
 import api.WynnPy
-from stalker.OptPlayerStats import optPlayerStats
-from stalker.utils import fileUtils
-from stalker.utils.askUtils import generalIntAsk
-from stalker.utils.wynnUtils import getPlayerClasses, getLobbyPlayer
-from stalker.utils.discordUtils import sendMessageWebhook
+from api.classes.OptPlayerStats import optPlayerStats
+from utils import fileUtils
+from utils.askUtils import generalIntAsk
+from utils.wynnUtils import getPlayerClasses, getLobbyPlayer
+from utils.discordUtils import sendMessageWebhook
 
 
 class checkerCore:
@@ -23,9 +23,9 @@ class checkerCore:
 
     def loadPingList(self):
         self.pingList = []
-        fileUtils.createDirectoryIfNotExists("data")
-        fileUtils.createFileIfNotExists("data/ping.txt")
-        with open("data/ping.txt") as fp:
+        fileUtils.createDirectoryIfNotExists("./checker/data")
+        fileUtils.createFileIfNotExists("./checker/data/ping.txt")
+        with open("./checker/data/ping.txt") as fp:
             Lines = fp.readlines()
             for line in Lines:
                 if len(line := line.strip()) > 0:
@@ -81,7 +81,7 @@ class checkerCore:
     def isHunter(self, player):
         statsPlayer = getPlayerClasses(self.wynnApi, player)
 
-        if statsPlayer == None:
+        if statsPlayer is None:
             return False
 
         found = False

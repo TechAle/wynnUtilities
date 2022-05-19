@@ -1,17 +1,15 @@
-import time
-
 import api.WynnPy
-from stalker.OptPlayerStats import optPlayerStats
+from api.classes.OptPlayerStats import optPlayerStats
 
-from stalker.utils.askUtils import *
-from stalker.utils.operatorsUtils import *
+from utils.askUtils import *
+from utils.operatorsUtils import *
 
-from stalker.utils import fileUtils
+from utils import fileUtils
 import threading
 
-from stalker.utils.logUtils import createLogger
+from utils.logUtils import createLogger
 
-from stalker.utils.wynnUtils import *
+from utils.wynnUtils import *
 
 
 # https://stackoverflow.com/questions/2130016/splitting-a-list-into-n-parts-of-approximately-equal-length
@@ -29,9 +27,10 @@ class stalkerCore:
         self.RPC = RPC
         # Logger
         self.logger = logger
+
         # Logger for hunted people
-        self.loggerHunded = createLogger("hunted")
-        self.loggerHunters = createLogger("hunters")
+        self.loggerHunded = createLogger("./stalker/logs/hunted")
+        self.loggerHunters = createLogger("./stalker/logs/hunters")
         # If the stalker is running
         self.on = self.running = False
         # Locker for multithreading
@@ -44,9 +43,9 @@ class stalkerCore:
         self.askInformations()
 
     def loadNoHuntedPeople(self):
-        fileUtils.createDirectoryIfNotExists("data")
-        fileUtils.createFileIfNotExists("data/players.txt")
-        with open("data/players.txt") as fp:
+        fileUtils.createDirectoryIfNotExists("./stalker/data")
+        fileUtils.createFileIfNotExists("./stalker/data/players.txt")
+        with open("./stalker/data/players.txt") as fp:
             Lines = fp.readlines()
             for line in Lines:
                 if len(line := line.strip()) > 0:
@@ -226,7 +225,7 @@ class stalkerCore:
                             self.listPlayers.append(player)
                         finally:
                             self.lock.release()
-                        with open("data/players.txt", "a") as rf:
+                        with open("./stalker/data/players.txt", "a") as rf:
                             rf.write(player + "\n")
                             rf.close()
 
