@@ -1,0 +1,56 @@
+{
+  "checker": {
+    "player": "",
+    "webhook": ""
+  },
+  "locator": {
+    "player": "Sorcerous"
+  },
+  "stalker": {
+    "requestsPerTime": 5,
+    "mode": "w",
+    "webhookHunted": "",
+    "webhookLootrunners": "",
+    "hunterCalling": true,
+    "toStalk": "all",
+    "api": 1,
+    "filters": {
+      "max": 0,
+      "mage": {
+        "toCheck": true,
+        "lowStart": 0,
+        "corkus": 0,
+        "cotl or rodo or sky": 0,
+        "cotl and rodo and sky or unlvl": 0
+      },
+      "archer": {
+        "toCheck": true,
+        "lowStart": 0,
+        "corkus": 0,
+        "cotl or rodo or sky": 0,
+        "cotl and rodo and sky or unlvl": 0
+      },
+      "warrior": {
+        "toCheck": true,
+        "lowStart": 0,
+        "corkus": 0,
+        "cotl or rodo or sky": 0,
+        "cotl and rodo and sky or unlvl": 0
+      },
+      "assassin": {
+        "toCheck": true,
+        "lowStart": 0,
+        "corkus": 0,
+        "cotl or rodo or sky": 0,
+        "cotl and rodo and sky or unlvl": 0
+      },
+      "shaman": {
+        "toCheck": true,
+        "lowStart": 0,
+        "corkus": 0,
+        "cotl or rodo or sky": 0,
+        "cotl and rodo and sky or unlvl": 0
+      }
+    }
+  }
+}

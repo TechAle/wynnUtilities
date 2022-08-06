@@ -1,7 +1,12 @@
 import time
 
+
 def isTarget(stats, hunterCallingCheck):
     return stats.gamemode.hunted or (hunterCallingCheck and stats.quests.__contains__('A Hunter\'s Calling'))
+
+
+def isHighLevel(stats, level=97):
+    return stats.combatLevel.level >= level
 
 
 def getPlayerClasses(wynnApi, player, logger=None):
@@ -18,6 +23,7 @@ def getPlayerClasses(wynnApi, player, logger=None):
             else:
                 return None
     return statsPlayer
+
 
 def getLobbyPlayer(lobby, player):
     for server in lobby:

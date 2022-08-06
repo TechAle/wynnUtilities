@@ -1,4 +1,5 @@
 from checker.coreChecker import checkerCore
+from locator.coreLocator import locatorCore
 from stalker.coreStalker import stalkerCore, getPlayerClasses, isTarget
 from utils import logUtils
 from utils.askUtils import generalIntAsk
@@ -7,8 +8,11 @@ import sys
 from stalker.discordRPC import RPC
 import threading
 
+from utils.wynnUtils import isHighLevel
+
 stalker = None
 checker = None
+locator = None
 dRPC = None
 
 app = logUtils.createLogger("app")
@@ -36,6 +40,7 @@ def startChecker():
     if not checker.running:
         checker.startCheckerThread()
 
+
 def endChecker():
     # noinspection PyUnresolvedReferences
     if checker is not None and checker.on:
@@ -52,12 +57,12 @@ def checkInfoPlayer():
 
     for wynnClass in player.classes:
         print(
-            "Name: {} Level: {} Blocks walked: {} chests: {} Playtime: {}\nMobs Killed: {} Deaths: {} PvpKills: {} PvpDeaths: {}\n"
+            "Name: {} IsHigh: {} Level: {} Blocks walked: {} chests: {} Playtime: {}\nMobs Killed: {} Deaths: {} PvpKills: {} PvpDeaths: {}\n"
             "Craftsman: {} Hardcore: {} Hunted: {} Ironman: {}\n"
             "Strenght: {} Dexterity: {} Intelligence: {} Defence: {} Agility: {}\n"
             "Alchemism: {} Armouring: {} Cooking: {} Farming: {} Fishing: {} Jeweling: {} Mining: {}\n"
             "Tailoring: {} Weaponsmithing: {} Woodcutting: {} Woodworking: {}\n"
-                .format(wynnClass.name, wynnClass.combatLevel.level, wynnClass.blocksWalked, wynnClass.chestsFound,
+                .format(wynnClass.name, isHighLevel(wynnClass), wynnClass.combatLevel.level, wynnClass.blocksWalked, wynnClass.chestsFound,
                         wynnClass.playtime,
                         wynnClass.mobsKilled, wynnClass.deaths, wynnClass.pvpKills, wynnClass.pvpDeaths,
                         wynnClass.gamemode.craftsman, wynnClass.gamemode.hardcore, wynnClass.gamemode.hunted,
@@ -107,19 +112,33 @@ def updateNonHunted():
         if statsPlayer is None:
             continue
         for classWynn in statsPlayer.classes:
-            if isTarget(classWynn, True):
+            if isHighLevel(classWynn):
                 i -= 1
                 players.pop(i)
                 removed += 1
                 break
         if i % 20 == 0:
             print("Removed {} and we are at {}%".format(removed, i / len(players) * 100))
+            writePlayers(players)
+
     print("Removed in total {} players".format(removed))
     writePlayers(players)
 
 
 def stop():
     sys.exit(0)
+
+def startLocationStalker():
+    global locator
+    if locator is None:
+        locator = locatorCore(threading.currentThread())
+    if not locator.running:
+        locator.startLocatorThread()
+
+def stopLocationStalker():
+    global locator
+    if locator is not None and locator.on:
+        locator.on = False
 
 
 if __name__ == "__main__":
@@ -133,7 +152,10 @@ if __name__ == "__main__":
             5: updateNonHunted,
             6: startChecker,
             7: endChecker,
-            8: stop
+            8: startLocationStalker,
+            9: stopLocationStalker,
+            10: stop
         }[generalIntAsk(
-            "1) Start bot\n2) Stop bot\n3) Check info\n4) Fix duplicates\n5) Update non hunted\n6) Start Checker\n7) End Checker\n8) Stop\nChoose: ",
-            8)]()
+            "1) Start bot\n2) Stop bot\n3) Check info\n4) Fix duplicates\n5) Update non hunted\n6) Start Checker\n"
+            "7) End Checker\n8) Start Location Stalker\n9) Stop Location Stalker\n10) Stop\nChoose: ",
+            10)]()

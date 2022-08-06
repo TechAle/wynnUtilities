@@ -1,5 +1,5 @@
 import os
-
+import json
 
 def createDirectoryIfNotExists(path):
     if not os.path.exists(path):
@@ -12,3 +12,9 @@ def createFileIfNotExists(path, content = ""):
         f = open(path, 'a')
         f.write(content)
         f.close()
+
+def readConfigFile():
+    f = open("./configuration.json")
+    data = json.load(f)
+    f.close()
+    return data

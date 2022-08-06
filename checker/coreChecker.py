@@ -18,8 +18,8 @@ class checkerCore:
         # If the stalker is running
         self.on = self.running = False
         # Ask informations
-        self.askInformations()
         self.loadPingList()
+        self.loadInformations()
 
     def loadPingList(self):
         self.pingList = []
@@ -32,9 +32,10 @@ class checkerCore:
                     self.pingList.append(line)
 
     # noinspection PyAttributeOutsideInit
-    def askInformations(self):
-        self.player = input("Player: ")
-        self.webhook = input("Webhook: ")
+    def loadInformations(self):
+        data = fileUtils.readConfigFile()
+        self.player = data["checker"]["player"]
+        self.webhook = data["checker"]["webhook"]
         # Get player classes
         playerClasses = getPlayerClasses(self.wynnApi, self.player.strip())
         # Print classes avaible
@@ -73,8 +74,7 @@ class checkerCore:
                 if player != self.player and not playersChecked.__contains__(player):
                     possibleHunter, sureHunter = self.isHunter(player)
                     if possibleHunter:
-                        sendMessageWebhook("Possible hunter joined: " + player, self.webhook,
-                                           ping=self.pingList.__contains__(player) or sureHunter)
+                        sendMessageWebhook("Warning", "Possible hunter joined: " + player, self.webhook)
                 playersChecked.append(player)
             time.sleep(60)
 

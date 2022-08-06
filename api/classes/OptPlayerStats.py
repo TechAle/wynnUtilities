@@ -1,6 +1,7 @@
 class optPlayerStats:
-    def __init__(self, wynnClass, timestamp):
+    def __init__(self, wynnClass, server, timestamp):
         self.className = wynnClass.name
+        self.server = server
         self.mobsKilled = wynnClass.mobsKilled
         self.gamemode = wynnClass.gamemode
         self.deaths = wynnClass.deaths

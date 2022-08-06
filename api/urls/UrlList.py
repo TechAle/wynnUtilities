@@ -1,4 +1,4 @@
-from api.urls.types import PublicApi, RequestV2, RequestV3
+from api.urls.types import PublicApi, RequestV2, RequestV3, RequestAthena, RequestLegacy
 
 
 class urlList:
@@ -6,6 +6,14 @@ class urlList:
         self.pApi = PublicApi.publicApi()
         self.v2 = RequestV2.requestV2()
         self.v3 = RequestV3.requestV3()
+        self.athena = RequestAthena.requestAthena()
+        self.legacy = RequestLegacy.requestLegacy()
+
+    def getLocations(self):
+        return self.legacy.getLocations()
+
+    def getServerUptime(self):
+        return self.athena.getServerUptime()
 
     def getGuildList(self):
         return self.pApi.getGuildList()

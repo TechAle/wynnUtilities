@@ -29,9 +29,9 @@ class wynnClass:
         self.woodcuttingLevel = profClass(dict["professions"]["woodcutting"])
         self.woodworkingLevel = profClass(dict["professions"]["woodworking"])
         self.skills = dict["skills"]
-        self.dungeons = dict["dungeons"]["list"]
+        self.dungeons = self.getDungeons(dict["dungeons"]["list"])
         self.quests = dict["quests"]["list"]
-        self.raids = dict["raids"]["list"]
+        self.raids = self.getDungeons(dict["raids"]["list"])
         self.itemsIdentified = dict["itemsIdentified"]
         self.mobsKilled = dict["mobsKilled"]
         self.pvpKills = dict["pvp"]["kills"]
@@ -40,8 +40,19 @@ class wynnClass:
         self.deaths = dict["deaths"]
         self.playtime = dict["playtime"]
         self.gamemode = gamemode(dict["gamemode"])
-        self.chestsFound = dict["chestsFound"]
+        if dict.__contains__("chestsFound"):
+            self.chestsFound = dict["chestsFound"]
+        else:
+            self.chestsFound = 0
         self.blocksWalked = dict["blocksWalked"]
+
+    # noinspection PyMethodMayBeStatic
+    def getDungeons(self, dungeons):
+        output = {}
+        for dungeon in dungeons:
+            output[dungeon["name"]] = dungeon["completed"]
+        return output
+
 
 class gamemode:
     def __init__(self, dict):
@@ -57,7 +68,10 @@ class profClass:
 
 class globals:
     def __init__(self, dict):
-        self.chestsFound = dict["chestsFound"]
+        if dict.__contains__("chestsFound"):
+            self.chestsFound = dict["chestsFound"]
+        else:
+            self.chestsFound = 0
         self.blocksWalked = dict["blocksWalked"]
         self.itemsIdentified = dict["itemsIdentified"]
         self.mobsKilled = dict["mobsKilled"]

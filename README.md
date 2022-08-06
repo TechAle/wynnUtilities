@@ -1,6 +1,6 @@
-# wynnUtils
+# wynnUtilities
 ## What is this?
-wynnUtils is a collection of scripts that use the wynncraft's api for obtaining certain thing.
+wynnUtilities is a collection of scripts that use the wynncraft's api for obtaining certain thing.
 ## Features
 - Stalker<br>
     Useful for checking what everyone is doing on wynncraft, in particular for tracking hunted people
