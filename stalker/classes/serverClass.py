@@ -19,28 +19,29 @@ class serverManager:
 
     def updateServers(self, wynnApi):
         serversOnline = wynnApi.getServerUptime()
-        for serverToCheck in serversOnline:
-            if not self.serversBefore.__contains__(serverToCheck):
-                self.serversBefore[serverToCheck] = {
-                    "uptime": serversOnline[serverToCheck],
-                    "players": [],
-                    "lastLooted": serversOnline[serverToCheck]
-                }
-            elif serversOnline[serverToCheck] != self.serversBefore[serverToCheck]["uptime"]:
-                self.serversBefore[serverToCheck]["uptime"] = self.serversBefore[serverToCheck]["lastLooted"] = serversOnline[serverToCheck]
+        if len(serversOnline) > 0:
+            for serverToCheck in serversOnline:
+                if not self.serversBefore.__contains__(serverToCheck):
+                    self.serversBefore[serverToCheck] = {
+                        "uptime": serversOnline[serverToCheck],
+                        "players": [],
+                        "lastLooted": serversOnline[serverToCheck]
+                    }
+                elif serversOnline[serverToCheck] != self.serversBefore[serverToCheck]["uptime"]:
+                    self.serversBefore[serverToCheck]["uptime"] = self.serversBefore[serverToCheck]["lastLooted"] = serversOnline[serverToCheck]
 
-        servers = self.serversBefore.copy().keys()
-        for serverToCheck in servers:
-            if not serversOnline.__contains__(serverToCheck):
-                del self.serversBefore[serverToCheck]
+            servers = self.serversBefore.copy().keys()
+            for serverToCheck in servers:
+                if not serversOnline.__contains__(serverToCheck):
+                    del self.serversBefore[serverToCheck]
 
-        for servers in self.serversBefore:
-            i = 0
-            while i < len(self.serversBefore[servers]["players"]):
-                if (round(time.time() * 1000) - self.serversBefore[servers]["players"][i].timeStamp) / 1000 / 60 > 135:
-                    self.serversBefore[servers]["players"].pop(i)
-                    i -= 1
-                i += 1
+            for servers in self.serversBefore:
+                i = 0
+                while i < len(self.serversBefore[servers]["players"]):
+                    if (round(time.time() * 1000) - self.serversBefore[servers]["players"][i].timeStamp) / 1000 / 60 > 135:
+                        self.serversBefore[servers]["players"].pop(i)
+                        i -= 1
+                    i += 1
 
     def exportServers(self, webhook, idReport):
         serversSorted = self.getSortedServers()

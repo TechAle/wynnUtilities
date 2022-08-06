@@ -37,11 +37,14 @@ class wynnPy:
 
     def getServerUptime(self):
         response = sendRequest(self.ATHENA + self.uList.getServerUptime())
-        response = response["servers"]
-        output = {}
-        for server in response:
-            output[server] = response[server]["firstSeen"]
-        return output
+        try:
+            response = response["servers"]
+            output = {}
+            for server in response:
+                output[server] = response[server]["firstSeen"]
+            return output
+        except Exception:
+            return []
 
     def getGuildList(self):
         response = sendRequest(self.BASEURL + self.uList.getGuildList())

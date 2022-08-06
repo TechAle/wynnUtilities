@@ -146,6 +146,8 @@ class stalkerCore:
         prevTargets = {}
         prevPrevTargets = {}
         self.on = self.running = True
+        discordUtils.sendMessageWebhook("Started hunted stalker", "", self.webhookHunter)
+        discordUtils.sendMessageWebhook("Started lootrunner tracker", "", self.webhookLr)
         while self.on and self.mainThread.is_alive():
             # Get players
             players = self.wynnApi.getPlayersOnline() if self.toStalk == "all" else \
@@ -395,12 +397,11 @@ class stalkerCore:
             self.logger.info("Waiting for refresh. Total target: {}".format(len(prevTargets)))
             time.sleep(60 - int(time.strftime("%S")))
 
-
     def checkBlocks(self, nowPlayer, blocksWalkedNow, blocksWalkedTotal, limits):
         predictZone = ""
         predictZoneNumber = -1
         low = False
-        if blocksWalkedNow > limits["low"] and limits["toCheck"]:
+        if blocksWalkedNow > limits["lowStart"] and limits["toCheck"]:
 
             if blocksWalkedTotal < limits["cork"]:
                 low = True
@@ -485,12 +486,15 @@ class stalkerCore:
                 classAdded.append(toAdd)
                 isHigh = True
                 added = True
+                info += "l " + toAdd.className + "|"
             if isTarget(classWynn, self.hunterCalling):
                 if not added:
                     classAdded.append(toAdd)
                 info += ("y " if toAdd.gamemode.hunted else "n ") + toAdd.className + "|"
                 oneHunted = True
             elif isTarget(classWynn, True):
+                if not added:
+                    classAdded.append(toAdd)
                 oneHunted = True
         # So, if this guy now is offline, we set classAdded to none
         if not statsPlayer.meta.online:
