@@ -8,6 +8,8 @@ wynnUtilities is a collection of scripts that use the wynncraft's api for obtain
     Want to do your prof without hunters killing you? Use this script for getting notified when a possible hunter join your server.
 - Crafter<br>
     Find the perfect crafted item of your wishes
+- Locator<br>
+    Do you want private lootrun but you dont have friends?! Steal your friends lootrun with this feature
 ## How to use this?
 - Install python 3.9
 - pip install requirements.txt
