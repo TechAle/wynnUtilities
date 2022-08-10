@@ -44,6 +44,8 @@ class serverManager:
                     i += 1
 
     def exportServers(self, webhook, idReport):
+        if webhook == "":
+            return
         serversSorted = self.getSortedServers()
         self.updates += 1
         webhook = Webhook.from_url(webhook, adapter=RequestsWebhookAdapter())  # Initializing webhook
@@ -92,6 +94,7 @@ class serverManager:
             color=0x40a0c6)
         embed.timestamp = datetime.utcnow()
         webhook.send(username="wynnStalker", avatar_url=self.avar, embed=embed)
+        webhook.send("<@&1000312359224623155>", username="wynnStalker", avatar_url=self.avar)
 
     '''
         - Bottom servers with less then 1.2 hours

@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from discord import Webhook, RequestsWebhookAdapter
+
 import api.WynnPy
 from api.classes.OptPlayerStats import optPlayerStats
 from api.classes.PlayerStats import playerStats
@@ -146,8 +148,10 @@ class stalkerCore:
         prevTargets = {}
         prevPrevTargets = {}
         self.on = self.running = True
-        discordUtils.sendMessageWebhook("Started hunted stalker", "", self.webhookHunter)
-        discordUtils.sendMessageWebhook("Started lootrunner tracker", "", self.webhookLr)
+        if self.webhookHunter != "":
+            discordUtils.sendMessageWebhook("Started hunted stalker", "", self.webhookHunter)
+        if self.webhookLr != "":
+            discordUtils.sendMessageWebhook("Started lootrunner tracker", "", self.webhookLr)
         while self.on and self.mainThread.is_alive():
             # Get players
             players = self.wynnApi.getPlayersOnline() if self.toStalk == "all" else \
@@ -206,7 +210,7 @@ class stalkerCore:
 
             self.serverManager.updateServers(self.wynnApi)
 
-            # Search for the name of the player we are checking
+            # Search for the name of the player we are checking [49469143]
             for nowPlayer in targetStats:
                 if nowPlayer == self.debugger:
                     a = 0
@@ -220,165 +224,169 @@ class stalkerCore:
                     for nowClass in targetStats[nowPlayer]:
                         for beforeClass in prevTargets[nowPlayer]:
                             if nowClass.className == beforeClass.className:
-                                # Found it, lets check if he was active
-                                if nowClass.timeStamp != beforeClass.timeStamp:
+                                self.lock.acquire()
+                                try:
+                                    if self.timeStamps.__contains__(nowPlayer):
+                                        self.timeStamps[nowPlayer] = current_milli_time()
+                                finally:
+                                    self.lock.release()
 
-                                    self.lock.acquire()
-                                    try:
-                                        if self.timeStamps.__contains__(nowPlayer):
-                                            self.timeStamps[nowPlayer] = current_milli_time()
-                                    finally:
-                                        self.lock.release()
+                                hunterActive = False
+                                notLr = False
+                                # @formatter:off
+                                outputStr = "{} Lobby: {} Class: {}. Hunted: {} Level: {} Craftman: {} Ironman: {} Hardcore: {}\n".format(nowPlayer, self.wynnApi.getLobbyPlayer(nowPlayer), nowClass.className, "y" if nowClass.gamemode.hunted else "n", nowClass.combatLevel.level,
+                                                                                                                                         "y" if nowClass.gamemode.craftsman else "n", "y" if nowClass.gamemode.ironman else "n", "y" if nowClass.gamemode.hardcore else "n")
+                                # Everything that changed
+                                if (mobsKilled := nowClass.mobsKilled - beforeClass.mobsKilled) > 0:
+                                    outputStr += "Mobs Killed: " + str(mobsKilled) + "\n"
+                                if (chestsFound := nowClass.chestsFound - beforeClass.chestsFound) > 0:
+                                    outputStr += "Chests Opened: " + str(chestsFound) + "\n"
 
-                                    hunterActive = False
-                                    notLr = False
-                                    # @formatter:off
-                                    outputStr = "{} Lobby: {} Class: {}. Hunted: {} Level: {} Craftman: {} Ironman: {} Hardcore: {}\n".format(nowPlayer, self.wynnApi.getLobbyPlayer(nowPlayer), nowClass.className, "y" if nowClass.gamemode.hunted else "n", nowClass.combatLevel.level,
-                                                                                                                                             "y" if nowClass.gamemode.craftsman else "n", "y" if nowClass.gamemode.ironman else "n", "y" if nowClass.gamemode.hardcore else "n")
-                                    # Everything that changed
-                                    if (mobsKilled := nowClass.mobsKilled - beforeClass.mobsKilled) > 0:
-                                        outputStr += "Mobs Killed: " + str(mobsKilled) + "\n"
-                                    if (chestsFound := nowClass.chestsFound - beforeClass.chestsFound) > 0:
-                                        outputStr += "Chests Opened: " + str(chestsFound) + "\n"
+                                if len(questsDone := list(set(nowClass.quests) - set(beforeClass.quests))) > 0:
+                                    outputStr += "Quests Done: " + questsDone.__str__() + "\n"
+                                    notLr = True
 
-                                    if len(questsDone := list(set(nowClass.quests) - set(beforeClass.quests))) > 0:
-                                        outputStr += "Quests Done: " + questsDone.__str__() + "\n"
+                                if  lazyOr((combatLvl := nowClass.combatLevel.level - beforeClass.combatLevel.level) > 0,
+                                           (combatXp := (0 if combatLvl > 0 else nowClass.combatLevel.xp - beforeClass.combatLevel.xp)) > 0):
+                                    outputStr += "Combat: {}LvL {}xp Real: {}".format(combatLvl, combatXp, nowClass.combatLevel.level) + "\n"
+                                    if (combatLvl > 0 or combatXp > 0.1) and nowClass.combatLevel.level != 106:
                                         notLr = True
 
-                                    if  lazyOr((combatLvl := nowClass.combatLevel.level - beforeClass.combatLevel.level) > 0,
-                                               (combatXp := (0 if combatLvl > 0 else nowClass.combatLevel.xp - beforeClass.combatLevel.xp)) > 0):
-                                        outputStr += "Combat: {}LvL {}xp Real: {}".format(combatLvl, combatXp, nowClass.combatLevel.level) + "\n"
-                                        if (combatLvl > 0 or combatXp > 0.1) and nowClass.combatLevel.level != 106:
-                                            notLr = True
+                                if  lazyOr((farmingLvl := nowClass.farmingLevel.level - beforeClass.farmingLevel.level) > 0,
+                                           (farmingXp := (0 if farmingLvl > 0 else nowClass.farmingLevel.xp - beforeClass.farmingLevel.xp)) > 0):
+                                    outputStr += "Farming: {}LvL {}xp Real: {}".format(farmingLvl, farmingXp, nowClass.farmingLevel.level) + "\n"
+                                    hunterActive = True
 
-                                    if  lazyOr((farmingLvl := nowClass.farmingLevel.level - beforeClass.farmingLevel.level) > 0,
-                                               (farmingXp := (0 if farmingLvl > 0 else nowClass.farmingLevel.xp - beforeClass.farmingLevel.xp)) > 0):
-                                        outputStr += "Farming: {}LvL {}xp Real: {}".format(farmingLvl, farmingXp, nowClass.farmingLevel.level) + "\n"
-                                        hunterActive = True
+                                if  lazyOr((fishingLvl := nowClass.fishingLevel.level - beforeClass.fishingLevel.level) > 0,
+                                           (fishingXp := (0 if fishingLvl > 0 else nowClass.fishingLevel.xp - beforeClass.fishingLevel.xp)) > 0):
+                                    outputStr += "Fishing: {}LvL {}xp Real: {}".format(fishingLvl, fishingXp, nowClass.fishingLevel.level) + "\n"
+                                    hunterActive = True
 
-                                    if  lazyOr((fishingLvl := nowClass.fishingLevel.level - beforeClass.fishingLevel.level) > 0,
-                                               (fishingXp := (0 if fishingLvl > 0 else nowClass.fishingLevel.xp - beforeClass.fishingLevel.xp)) > 0):
-                                        outputStr += "Fishing: {}LvL {}xp Real: {}".format(fishingLvl, fishingXp, nowClass.fishingLevel.level) + "\n"
-                                        hunterActive = True
+                                if  lazyOr((miningLvl := nowClass.miningLevel.level - beforeClass.miningLevel.level) > 0,
+                                           (miningXp := (0 if miningLvl > 0 else nowClass.miningLevel.xp - beforeClass.miningLevel.xp)) > 0):
+                                    outputStr += "Mining: {}LvL {}xp Level: {}".format(miningLvl, miningXp, nowClass.miningLevel.level) + "\n"
+                                    hunterActive = True
 
-                                    if  lazyOr((miningLvl := nowClass.miningLevel.level - beforeClass.miningLevel.level) > 0,
-                                               (miningXp := (0 if miningLvl > 0 else nowClass.miningLevel.xp - beforeClass.miningLevel.xp)) > 0):
-                                        outputStr += "Mining: {}LvL {}xp Level: {}".format(miningLvl, miningXp, nowClass.miningLevel.level) + "\n"
-                                        hunterActive = True
-
-                                    if  lazyOr((woodcuttingLvl := nowClass.woodcuttingLevel.level - beforeClass.woodcuttingLevel.level) > 0,
-                                               (woodcuttingXp := (0 if woodcuttingLvl > 0 else nowClass.woodcuttingLevel.xp - beforeClass.woodcuttingLevel.xp)) > 0):
-                                        outputStr += "Woodcutting: {}LvL {}xp Real: {}".format(woodcuttingLvl, woodcuttingXp, nowClass.woodcuttingLevel.level) + "\n"
-                                        hunterActive = True
+                                if  lazyOr((woodcuttingLvl := nowClass.woodcuttingLevel.level - beforeClass.woodcuttingLevel.level) > 0,
+                                           (woodcuttingXp := (0 if woodcuttingLvl > 0 else nowClass.woodcuttingLevel.xp - beforeClass.woodcuttingLevel.xp)) > 0):
+                                    outputStr += "Woodcutting: {}LvL {}xp Real: {}".format(woodcuttingLvl, woodcuttingXp, nowClass.woodcuttingLevel.level) + "\n"
+                                    hunterActive = True
 
 
-                                    if  lazyOr((woodworkingLvl := nowClass.woodworkingLevel.level - beforeClass.woodworkingLevel.level) > 0,
-                                               (woodworkingXp := (0 if woodworkingLvl > 0 else nowClass.woodworkingLevel.xp - beforeClass.woodworkingLevel.xp)) > 0):
-                                        outputStr += "Woodworking: {}LvL {}xp Real: {}".format(woodworkingLvl, woodworkingXp, nowClass.woodcuttingLevel.level) + "\n"
-                                        notLr = True
+                                if  lazyOr((woodworkingLvl := nowClass.woodworkingLevel.level - beforeClass.woodworkingLevel.level) > 0,
+                                           (woodworkingXp := (0 if woodworkingLvl > 0 else nowClass.woodworkingLevel.xp - beforeClass.woodworkingLevel.xp)) > 0):
+                                    outputStr += "Woodworking: {}LvL {}xp Real: {}".format(woodworkingLvl, woodworkingXp, nowClass.woodcuttingLevel.level) + "\n"
+                                    notLr = True
 
-                                    if  lazyOr((weaponsmithingLvl := nowClass.weaponsmithingLevel.level - beforeClass.weaponsmithingLevel.level) > 0,
-                                               (weaponsmithingXp := (0 if weaponsmithingLvl > 0 else nowClass.weaponsmithingLevel.xp - beforeClass.weaponsmithingLevel.xp)) > 0):
-                                        outputStr += "Weaponsmith: {}LvL {}xp Real: {}".format(weaponsmithingLvl, weaponsmithingXp, nowClass.woodcuttingLevel.level) + "\n"
-                                        notLr = True
+                                if  lazyOr((weaponsmithingLvl := nowClass.weaponsmithingLevel.level - beforeClass.weaponsmithingLevel.level) > 0,
+                                           (weaponsmithingXp := (0 if weaponsmithingLvl > 0 else nowClass.weaponsmithingLevel.xp - beforeClass.weaponsmithingLevel.xp)) > 0):
+                                    outputStr += "Weaponsmith: {}LvL {}xp Real: {}".format(weaponsmithingLvl, weaponsmithingXp, nowClass.woodcuttingLevel.level) + "\n"
+                                    notLr = True
 
-                                    if  lazyOr((tailoringLvl := nowClass.tailoringLevel.level - beforeClass.tailoringLevel.level) > 0,
-                                               (tailoringXp := (0 if tailoringLvl > 0 else nowClass.tailoringLevel.xp - beforeClass.tailoringLevel.xp)) > 0):
-                                        outputStr += "Tailoring: {}LvL {}xp Real: {}".format(tailoringLvl, tailoringXp, nowClass.woodcuttingLevel.level) + "\n"
-                                        notLr = True
+                                if  lazyOr((tailoringLvl := nowClass.tailoringLevel.level - beforeClass.tailoringLevel.level) > 0,
+                                           (tailoringXp := (0 if tailoringLvl > 0 else nowClass.tailoringLevel.xp - beforeClass.tailoringLevel.xp)) > 0):
+                                    outputStr += "Tailoring: {}LvL {}xp Real: {}".format(tailoringLvl, tailoringXp, nowClass.woodcuttingLevel.level) + "\n"
+                                    notLr = True
 
-                                    if  lazyOr((alchemismLvl := nowClass.alchemismLevel.level - beforeClass.alchemismLevel.level) > 0,
-                                               (alchemismXp := (0 if alchemismLvl > 0 else nowClass.alchemismLevel.xp - beforeClass.alchemismLevel.xp)) > 0):
-                                        outputStr += "Alchemism: {}LvL {}xp Real: {}".format(alchemismLvl, alchemismXp, nowClass.woodcuttingLevel.level) + "\n"
-                                        notLr = True
+                                if  lazyOr((alchemismLvl := nowClass.alchemismLevel.level - beforeClass.alchemismLevel.level) > 0,
+                                           (alchemismXp := (0 if alchemismLvl > 0 else nowClass.alchemismLevel.xp - beforeClass.alchemismLevel.xp)) > 0):
+                                    outputStr += "Alchemism: {}LvL {}xp Real: {}".format(alchemismLvl, alchemismXp, nowClass.woodcuttingLevel.level) + "\n"
+                                    notLr = True
 
-                                    if  lazyOr((armouringLvl := nowClass.armouringLevel.level - beforeClass.armouringLevel.level) > 0,
-                                               (armouringXp := (0 if armouringLvl > 0 else nowClass.armouringLevel.xp - beforeClass.armouringLevel.xp)) > 0):
-                                        outputStr += "Armouring: {}LvL {}xp Real: {}".format(armouringLvl, armouringXp, nowClass.woodcuttingLevel.level) + "\n"
-                                        notLr = True
+                                if  lazyOr((armouringLvl := nowClass.armouringLevel.level - beforeClass.armouringLevel.level) > 0,
+                                           (armouringXp := (0 if armouringLvl > 0 else nowClass.armouringLevel.xp - beforeClass.armouringLevel.xp)) > 0):
+                                    outputStr += "Armouring: {}LvL {}xp Real: {}".format(armouringLvl, armouringXp, nowClass.woodcuttingLevel.level) + "\n"
+                                    notLr = True
 
-                                    blocksWalkedTotal = abs(nowClass.blocksWalked - beforeClass.blocksWalked)
-                                    blocksWalkedNow = blocksWalkedTotal
-                                    if blocksWalkedTotal > 0:
-                                        if prevPrevTargets is not None and prevPrevTargets.__contains__(nowPlayer):
-                                            for beforeBeforeClass in prevPrevTargets[nowPlayer]:
-                                                if beforeBeforeClass.className == beforeClass.className and beforeBeforeClass.server == beforeClass.server:
-                                                    blocksWalkedTotal += abs(beforeClass.blocksWalked - beforeBeforeClass.blocksWalked)
-                                        outputStr += "Blocks Walked now: " + str(blocksWalkedNow) + " Total: " + str(blocksWalkedTotal) + "\n"
+                                blocksWalkedTotal = abs(nowClass.blocksWalked - beforeClass.blocksWalked)
+                                blocksWalkedNow = blocksWalkedTotal
+                                if blocksWalkedTotal > 0:
+                                    if prevPrevTargets is not None and prevPrevTargets.__contains__(nowPlayer):
+                                        for beforeBeforeClass in prevPrevTargets[nowPlayer]:
+                                            if beforeBeforeClass.className == beforeClass.className and beforeBeforeClass.server == beforeClass.server:
+                                                blocksWalkedTotal += abs(beforeClass.blocksWalked - beforeBeforeClass.blocksWalked)
+                                    outputStr += "Blocks Walked now: " + str(blocksWalkedNow) + " Total: " + str(blocksWalkedTotal) + "\n"
+                                else:
+                                    outputStr += "Tf blocks walked is negative? How? " + str(blocksWalkedNow)
 
-                                    if (dungeonsDone := self.getDifferenceDungeons(nowClass.dungeons, beforeClass.dungeons)) != "":
-                                        notLr = True
-                                        outputStr += "Dungeons: \n" + dungeonsDone
+                                if (dungeonsDone := self.getDifferenceDungeons(nowClass.dungeons, beforeClass.dungeons)) != "":
+                                    notLr = True
+                                    outputStr += "Dungeons: \n" + dungeonsDone
 
-                                    if (raidsDone := self.getDifferenceDungeons(nowClass.raids, beforeClass.raids)) != "":
-                                        notLr = True
-                                        outputStr += "Raids: \n" + raidsDone
+                                if (raidsDone := self.getDifferenceDungeons(nowClass.raids, beforeClass.raids)) != "":
+                                    notLr = True
+                                    outputStr += "Raids: \n" + raidsDone
 
-                                    timePlaying = 0
-                                    if self.playersTime.__contains__(nowPlayer):
-                                        timePlaying = int((time.time() - self.playersTime[nowPlayer]["time"])/60)
-                                    outputStr += " Time: " + str(timePlaying) + "mins\n"
+                                timePlaying = 0
+                                if self.playersTime.__contains__(nowPlayer):
+                                    timePlaying = int((time.time() - self.playersTime[nowPlayer]["time"])/60)
+                                outputStr += " Time: " + str(timePlaying) + "mins\n"
 
-                                    # Hunted
-                                    if isTarget(nowClass, self.hunterCalling):
-                                        if nowClass.gamemode.hunted:
-                                            self.RPC.increaseHunted()
-                                            self.logger.log(36, outputStr)
+                                # Hunted
+                                if isTarget(nowClass, self.hunterCalling) and blocksWalkedNow > 0:
+                                    if nowClass.gamemode.hunted:
+                                        self.RPC.increaseHunted()
+                                        self.logger.log(36, outputStr)
+                                        if self.webhookHunter != "":
+                                            discordUtils.sendMessageWebhook("Hunted found: " + nowPlayer, outputStr, self.webhookHunter)
+                                            webhook = Webhook.from_url(self.webhookHunter, adapter=RequestsWebhookAdapter())
+                                            webhook.send("<@&1005921707002966057>", username="wynnStalker", avatar_url="https://cdn.discordapp.com/app-icons/973942027563712632/3043f3b6d99b2b737ef7216e8c14c106.png?size=256")
+                                        else:
+                                            self.loggerHunded.log(36, outputStr)
+                                    else:
+                                        if hunterActive:
+                                            self.logger.log(35, outputStr)
                                             if self.webhookHunter != "":
-                                                discordUtils.sendMessageWebhook("Hunted found: " + nowPlayer, outputStr, self.webhookHunter)
+                                                discordUtils.sendMessageWebhook("Hunter found: " + nowPlayer, outputStr, self.webhookHunter, "00faff")
                                             else:
-                                                self.loggerHunded.log(36, outputStr)
-                                        else:
-                                            if hunterActive:
-                                                self.logger.log(35, outputStr)
-                                                if self.webhookHunter != "":
-                                                    discordUtils.sendMessageWebhook("Hunter found: " + nowPlayer, outputStr, self.webhookHunter, "00faff")
-                                                else:
-                                                    self.loggerHunters.log(35, outputStr)
+                                                self.loggerHunters.log(35, outputStr)
 
-                                    if not notLr and not hunterActive and mobsKilled < 500 and self.filters["max"] > blocksWalkedNow:
-                                        predictZone = ""
-                                        predictZoneNumber = -1
-                                        low = False
+                                if not notLr and not hunterActive and mobsKilled < 500 and self.filters["max"] > blocksWalkedNow:
+                                    predictZone = ""
+                                    predictZoneNumber = -1
+                                    low = False
 
-                                        if nowClass.className.__contains__("mage") or nowClass.className.__contains__("wizard"):
-                                            low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["mage"])
-                                        elif nowClass.className.__contains__("shaman") or nowClass.className.__contains__("skyseer"):
-                                            low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["shaman"])
-                                        elif nowClass.className.__contains__("assassin") or nowClass.className.__contains__("ninja"):
-                                            low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["assassin"])
-                                        elif nowClass.className.__contains__("warrior") or nowClass.className.__contains__("kni"):
-                                            low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["warrior"])
-                                        elif nowClass.className.__contains__("archer") or nowClass.className.__contains__("hunt"):
-                                            low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["archer"])
+                                    if nowClass.className.__contains__("mage") or nowClass.className.__contains__("wizard"):
+                                        low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["mage"])
+                                    elif nowClass.className.__contains__("shaman") or nowClass.className.__contains__("skyseer"):
+                                        low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["shaman"])
+                                    elif nowClass.className.__contains__("assassin") or nowClass.className.__contains__("ninja"):
+                                        low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["assassin"])
+                                    elif nowClass.className.__contains__("warrior") or nowClass.className.__contains__("kni"):
+                                        low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["warrior"])
+                                    elif nowClass.className.__contains__("archer") or nowClass.className.__contains__("hunt"):
+                                        low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["archer"])
 
-                                        if predictZone != "":
-                                            self.logger.log(36, "Lootrunner: " + nowPlayer + "\n" + predictZone)
-                                            self.RPC.increaseLootrunners()
+                                    if predictZone != "":
+                                        self.logger.log(36, "Lootrunner: " + nowPlayer + "\n" + predictZone)
+                                        self.RPC.increaseLootrunners()
 
-                                            if self.webhookLr != "":
-                                                #discordUtils.sendMessageWebhook("Lootrunner found: " + nowPlayer + " " + nowClass.className, predictZone + "\n" + outputStr, self.webhookLr, "ffffff" if low else "000000")
-                                                self.serverManager.addLootrunner(lootrunner(nowPlayer, nowClass.server, blocksWalkedNow, blocksWalkedTotal, timePlaying, predictZoneNumber, nowClass.timeStamp, nowClass.className, low))
-                                        else:
-                                            threading.Thread(target=lambda: self.logger.warning(
-                                                "Not accepted: {} {}".format(nowPlayer, outputStr))).start()
+                                        if self.webhookLr != "":
+                                            server = nowClass.server
+                                            if prevTargets.__contains__(nowPlayer):
+                                                server = prevTargets[nowPlayer][0].server
+                                            #discordUtils.sendMessageWebhook("Lootrunner found: " + nowPlayer + " " + nowClass.className, predictZone + "\n" + outputStr, self.webhookLr, "ffffff" if low else "000000")
+                                            self.serverManager.addLootrunner(lootrunner(nowPlayer, server, blocksWalkedNow, blocksWalkedTotal, timePlaying, predictZoneNumber, nowClass.timeStamp, nowClass.className, low))
                                     else:
                                         threading.Thread(target=lambda: self.logger.warning(
                                             "Not accepted: {} {}".format(nowPlayer, outputStr))).start()
+                                else:
+                                    threading.Thread(target=lambda: self.logger.warning(
+                                        "Not accepted: {} {}".format(nowPlayer, outputStr))).start()
 
-                                    changedServer = False
-                                    if prevTargets.__contains__(nowPlayer):
-                                        if prevTargets[nowPlayer][0].server != targetStats[nowPlayer][0].server:
-                                            changedServer = False
+                    changedServer = False
+                    if prevTargets.__contains__(nowPlayer):
+                        if prevTargets[nowPlayer][0].server != targetStats[nowPlayer][0].server:
+                            changedServer = True
 
-                                    if changedServer:
-                                        prevTargets[nowPlayer] = targetStats[nowPlayer]
-                                        prevPrevTargets[nowPlayer] = prevTargets[nowPlayer]
-                                    else:
-                                        prevPrevTargets[nowPlayer] = prevTargets[nowPlayer]
-                                        prevTargets[nowPlayer] = targetStats[nowPlayer]
+                    if changedServer:
+                        prevPrevTargets[nowPlayer] = targetStats[nowPlayer]
+                        prevTargets[nowPlayer] = targetStats[nowPlayer]
+                    else:
+                        prevPrevTargets[nowPlayer] = prevTargets[nowPlayer]
+                        prevTargets[nowPlayer] = targetStats[nowPlayer]
 
-                                        # @formatter:on
+                                    # @formatter:on
 
             minute = datetime.now().minute
             report = False
