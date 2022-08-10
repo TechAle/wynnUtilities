@@ -85,25 +85,31 @@ class stalkerCore:
                         if serverBefore != server:
                             self.playersTime[player]["time"] = time.time()
                             self.playersTime[player]["server"] = server
+                            self.playersTime[player]["retry"] = 0
                     # If not, add it
                     else:
                         self.playersTime[player] = {
                             "time": time.time(),
-                            "server": server
+                            "server": server,
+                            "retry": 0
                         }
 
             # Check if someone logout
             keys = list(self.playersTime.keys())
             for i in range(len(keys)):
                 if not playersOnline.__contains__(keys[i]):
-                    self.playersTime.pop(keys[i])
-                    i -= 1
-                    self.lock.acquire()
-                    try:
-                        if self.timeStamps.__contains__(keys[i]):
-                            self.timeStamps.pop(keys[i])
-                    finally:
-                        self.lock.release()
+                    if self.playersTime[keys[i]]["retry"] != 15:
+                        self.playersTime[keys[i]]["retry"] += 1
+                        continue
+                    else:
+                        self.playersTime.pop(keys[i])
+                        i -= 1
+                        self.lock.acquire()
+                        try:
+                            if self.timeStamps.__contains__(keys[i]):
+                                self.timeStamps.pop(keys[i])
+                        finally:
+                            self.lock.release()
 
             time.sleep(60 - int(time.strftime("%S")))
 
@@ -210,7 +216,7 @@ class stalkerCore:
 
             self.serverManager.updateServers(self.wynnApi)
 
-            # Search for the name of the player we are checking [49469143]
+            # Search for the name of the player we are checking [49797763]
             for nowPlayer in targetStats:
                 if nowPlayer == self.debugger:
                     a = 0
@@ -321,6 +327,9 @@ class stalkerCore:
                                 if self.playersTime.__contains__(nowPlayer):
                                     timePlaying = int((time.time() - self.playersTime[nowPlayer]["time"])/60)
                                 outputStr += " Time: " + str(timePlaying) + "mins\n"
+
+                                if timePlaying < 20:
+                                    notLr = True
 
                                 # Hunted
                                 if isTarget(nowClass, self.hunterCalling) and blocksWalkedNow > 0:

@@ -38,7 +38,7 @@ class serverManager:
             for servers in self.serversBefore:
                 i = 0
                 while i < len(self.serversBefore[servers]["players"]):
-                    if (round(time.time() * 1000) - self.serversBefore[servers]["players"][i].timeStamp) / 1000 / 60 > 135:
+                    if (round(time.time() * 1000) - self.serversBefore[servers]["players"][i].timeStamp) / 1000 / 60 > 60*4+15:
                         self.serversBefore[servers]["players"].pop(i)
                         i -= 1
                     i += 1
@@ -65,7 +65,7 @@ class serverManager:
             listPlayers = ""
             listPrediction = ""
             for player in servers["players"]:
-                listPlayers += f"{player.name} ({player.blocksNow}-{player.blocksTotal}) {player.nameClass} <t:{int(player.timeStamp/1000)}:R> Low: {str(player.low)}\n"
+                listPlayers += f"{player.name} ({player.blocksNow}-{player.blocksTotal}) {player.mins}mins {player.nameClass} <t:{int(player.timeStamp/1000)}:R> Low: {str(player.low)}\n"
                 if player.predict != -1:
                     listPrediction += f"{player.getPredictionName()} <t:{int(player.timeStamp/1000)}:R>\n"
             if listPlayers != "":
@@ -122,8 +122,8 @@ class serverManager:
             else:
                 less1Hours.append(serverTemp[server])
         # Now sort
-        withLootunners = sorted(withLootunners, key=lambda d: d['lastLooted'], reverse=True)
-        noLootrunners = sorted(noLootrunners, key=lambda d: d['players'], reverse=True)
+        withLootunners = sorted(withLootunners, key=lambda d: d['lastLooted'])
+        noLootrunners = sorted(noLootrunners, key=lambda d: d['players'])
         output = noLootrunners
         output.extend(withLootunners)
         output.extend(less1Hours)
