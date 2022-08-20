@@ -165,7 +165,11 @@ class wynnPy:
         return wynnClass(response)
 
     def getLobbyPlayer(self, name):
-        response = sendRequest(self.BASEURL + self.uList.getServerList())
+        # noinspection PyBroadException
+        try:
+            response = sendRequest(self.BASEURL + self.uList.getServerList())
+        except Exception:
+            return -1
         for server in response:
             if response[server].__contains__(name):
                 return server

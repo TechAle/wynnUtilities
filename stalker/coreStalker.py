@@ -61,7 +61,7 @@ class stalkerCore:
         self.loadNoHuntedPeople()
         # Ask informations
         self.loadInformations()
-        self.minuteStage = int(datetime.now().minute / 20)
+        self.minuteStage = int(datetime.now().minute / 15)
 
     def threadTime(self):
         self.playersTime = {}
@@ -328,8 +328,6 @@ class stalkerCore:
                                     timePlaying = int((time.time() - self.playersTime[nowPlayer]["time"])/60)
                                 outputStr += " Time: " + str(timePlaying) + "mins\n"
 
-                                if timePlaying < 20:
-                                    notLr = True
 
                                 # Hunted
                                 if isTarget(nowClass, self.hunterCalling) and blocksWalkedNow > 0:
@@ -372,7 +370,7 @@ class stalkerCore:
 
                                         if self.webhookLr != "":
                                             server = nowClass.server
-                                            if prevTargets.__contains__(nowPlayer):
+                                            if prevTargets.__contains__(nowPlayer) and timePlaying < 15:
                                                 server = prevTargets[nowPlayer][0].server
                                             #discordUtils.sendMessageWebhook("Lootrunner found: " + nowPlayer + " " + nowClass.className, predictZone + "\n" + outputStr, self.webhookLr, "ffffff" if low else "000000")
                                             self.serverManager.addLootrunner(lootrunner(nowPlayer, server, blocksWalkedNow, blocksWalkedTotal, timePlaying, predictZoneNumber, nowClass.timeStamp, nowClass.className, low))
@@ -389,7 +387,8 @@ class stalkerCore:
                             changedServer = True
 
                     if changedServer:
-                        prevPrevTargets[nowPlayer] = targetStats[nowPlayer]
+                        if prevPrevTargets.__contains__(nowPlayer):
+                            prevPrevTargets.pop(nowPlayer)
                         prevTargets[nowPlayer] = targetStats[nowPlayer]
                     else:
                         prevPrevTargets[nowPlayer] = prevTargets[nowPlayer]
@@ -400,14 +399,16 @@ class stalkerCore:
             minute = datetime.now().minute
             report = False
             if self.minuteStage == 0:
-                report = minute >= 20
+                report = minute >= 15
             elif self.minuteStage == 1:
-                report = minute >= 40
+                report = minute >= 30
             elif self.minuteStage == 2:
-                report = minute < 40
+                report = minute >= 45
+            elif self.minuteStage == 3:
+                report = minute < 45
             if report:
                 self.minuteStage += 1
-                self.minuteStage %= 3
+                self.minuteStage %= 4
                 idReport = str(time.time())
                 self.logger.info("Printing report with id " + idReport)
                 self.serverManager.exportServers(self.webhookLr, idReport)

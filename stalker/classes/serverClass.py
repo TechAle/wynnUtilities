@@ -75,17 +75,20 @@ class serverManager:
                 embed.add_field(name="Prediction spots",
                                 value=listPrediction,
                                 inline=False)
-            webhook.send(username="wynnStalker", avatar_url=self.avar, embed=embed)
-            time.sleep(1)
+            try:
+                webhook.send(username="wynnStalker", avatar_url=self.avar, embed=embed)
+                time.sleep(1)
+            except discord.errors.HTTPException:
+                pass
 
         nowTime = datetime.now()
-        stageMinute = int(nowTime.minute / 20)
+        stageMinute = int(nowTime.minute / 15)
         nextReportTimeStamp = datetime.timestamp(
             datetime(nowTime.year, nowTime.month,
-                     nowTime.day + (1 if nowTime.hour == 23 and stageMinute == 2 else 0),
+                     nowTime.day + (1 if nowTime.hour == 23 and stageMinute == 3 else 0),
                      nowTime.hour + (
-                         -23 if stageMinute == 2 and nowTime.hour == 23 else 1 if stageMinute == 2 else 0),
-                     0 if stageMinute == 2 else 20 if stageMinute == 0 else 40)
+                         -23 if stageMinute == 3 and nowTime.hour == 23 else 1 if stageMinute == 3 else 0),
+                     0 if stageMinute == 3 else 30 if stageMinute == 2 else 30 if stageMinute == 1 else 15)
         )
 
         embed = discord.Embed(
