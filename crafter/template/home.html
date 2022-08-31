@@ -1,10 +1,123 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="global.css"/>
 
-</body>
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+              integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+        <title>Wynnutils</title>
+    </head>
+    <body>
+        <h1 id="title">Wynnutils</h1>
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6 centerDiv"><button class="btn btn-light">Update dataset</button></div>
+                <div class="col-md-6 centerDiv"><button class="btn btn-light">Credits</button></div>
+            </div>
+            <div class="row crafting">
+                <form>
+                    <div class="row line">
+                        <div class="col-md-4 col-sm-12">
+                        <label for="recipe-choice">Recipe-type</label>
+                        <input  class="recipeinput" list="recipe-choices" id="recipe-choice"
+                                name="recipe-choice" placeholder="Potion">
+                        <datalist id="recipe-choices">
+                            <option value="Helmet"></option>
+                            <option value="Chestplate"></option>
+                            <option value="Leggings"></option>
+                            <option value="Boots"></option>
+                            <option value="Relik"></option>
+                            <option value="Wand"></option>
+                            <option value="Spear"></option>
+                            <option value="Dagger"></option>
+                            <option value="Bow"></option>
+                            <option value="Ring"></option>
+                            <option value="Necklace"></option>
+                            <option value="Bracelet"></option>
+                            <option value="Scroll"></option>
+                            <option value="Food"></option>
+                            <option value="Potion"></option>
+                        </datalist>
+        </div>
+                        <div class="col-md-4 col-sm-12">
+                            <label for="inputNumber">Min Dura:</label>
+                            <input type="number" data-bs-input id="inputNumber" name="inputNumber" value="100" step="any" /></div>
+                        <div class="col-md-4 col-sm-12">
+                            <label for="inputCosts">Max Costs:</label>
+                            <input type="number" data-bs-input id="inputCosts" name="inputNumber" value="100" step="any" /></div>
+                    </div>
+
+                    <div class="row line">
+                        <div class="col-md-4">
+                            <label for="restLevelMat1">Rest Level Mat:</label>
+                            <input type="number" data-bs-input id="restLevelMat1" name="inputNumber" value="100" step="any" />
+                            <input type="number" data-bs-input id="restLevelMat2" name="inputNumber" value="100" step="any" />
+                        </div>
+                        <div class="col-md-4">
+                            <span id="matsTiersSpan">Mats tiers:</span>
+                            <input checked class="form-check-input checkboxMats" type="checkbox" value="" id="flexCheckDefault1">
+                            <input checked class="form-check-input checkboxMats" type="checkbox" value="" id="flexCheckDefault2">
+                            <input checked class="form-check-input checkboxMats" type="checkbox" value="" id="flexCheckDefault3">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="restLevelIng1">Rest Level Ing:</label>
+                            <input type="number" data-bs-input id="restLevelIng1" name="inputNumber" value="100" step="any" />
+                            <input type="number" data-bs-input id="restLevelIng2" name="inputNumber" value="100" step="any" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="recipe-choice">Want 1:</label>
+                            <input  class="recipeinput" list="modifiers"
+                                name="modifiers-choose" placeholder="" id="want1">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="recipe-choice">Want 2:</label>
+                            <input  class="recipeinput" list="modifiers"
+                                name="modifiers-choose" placeholder="" id="want2">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="recipe-choice">Want 3:</label>
+                            <input  class="recipeinput" list="modifiers"
+                                name="modifiers-choose" placeholder="" id="want3">
+                        </div>
+                    </div>
+                    <datalist id="modifiers"><option value="poison"></option><option value="waterDefence"></option><option value="manaSteal"></option><option value="fireDamage"></option><option value="walkSpeed"></option><option value="rawHealthRegen"></option><option value="airDefence"></option><option value="rawHealth"></option><option value="earthDefence"></option><option value="healthRegen"></option><option value="rawStrength"></option><option value="xpBonus"></option><option value="mainAttackDamage"></option><option value="spellDamage"></option><option value="airDamage"></option><option value="thunderDefence"></option><option value="fireDefence"></option><option value="rawMainAttackNeutralDamage"></option><option value="thorns"></option><option value="reflection"></option><option value="lootBonus"></option><option value="lootQuality"></option><option value="earthDamage"></option><option value="rawDefence"></option><option value="rawIntelligence"></option><option value="rawDexterity"></option><option value="rawAgility"></option><option value="manaRegen"></option><option value="waterDamage"></option><option value="thunderDamage"></option><option value="rawNeutralSpellDamage"></option><option value="attackSpeed"></option><option value="exploding"></option><option value="lifeSteal"></option><option value="stealing"></option><option value="soulPointRegen"></option><option value="rawJumpHeight"></option><option value="sprint"></option><option value="gatherXPBonus"></option><option value="gatherSpeed"></option><option value="sprintRegen"></option></datalist>
+
+
+
+
+                </form>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 centerDiv">
+                    <button class="btn btn-light centerDiv">Craft</button>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+                integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+                crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"
+                integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+                crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
+                integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+                crossorigin="anonymous"></script>
+    </body>
 </html>

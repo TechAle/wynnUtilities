@@ -8,3 +8,6 @@ class requestAthena(baseRequest):
     def getServerUptime(self):
         return self.extension + "serverList"
 
+    def getIngridients(self):
+        return self.extension + "ingredientList"
+

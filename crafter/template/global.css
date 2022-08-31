@@ -1,0 +1,56 @@
+html, body {
+    background-color: #121516 !important;
+    color: white !important;
+    height: 100vh;
+}
+
+#title {
+    height: 80px;
+    text-align: center;
+    margin: 0;
+    vertical-align: middle;
+    padding-top: 10px;
+}
+
+#content {
+    background-color: red;
+    height: calc(100% - 80px);
+}
+
+#table {
+    background-color: aqua;
+    height: 80%;
+}
+
+.centerDiv {
+    text-align: center;
+}
+
+form {
+    width: 100%;
+    border: 3px solid #BCBCBC;
+    border-radius: 3px;
+    padding: 15px !important;
+}
+
+.line {
+    border-bottom: 3px solid #BCBCBC;
+}
+
+.crafting {
+    margin: 15px !important;
+}
+
+.row > * {
+    text-align: center;
+}
+
+.checkboxMats {
+    position: relative !important;
+    width: 20px;
+    margin-right: 20px;
+}
+
+#matsTiersSpan {
+    margin-right: 18px;
+}

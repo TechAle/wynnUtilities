@@ -56,3 +56,6 @@ class urlList:
 
     def getWynnClass(self, name, classWynn):
         return self.v3.getWynnClass(name, classWynn)
+
+    def getIngridients(self):
+        return self.athena.getIngridients()

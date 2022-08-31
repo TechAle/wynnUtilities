@@ -160,6 +160,10 @@ class wynnPy:
         response = sendRequest(self.WEBURL + self.uList.getClasses(name))
         return response
 
+    def getIngridients(self):
+        response = sendRequest(self.ATHENA + self.uList.getIngridients())
+        return response
+
     def getWynnClass(self, name, classWynn):
         response = sendRequest(self.WEBURL + self.uList.getWynnClass(name, classWynn))
         return wynnClass(response)
