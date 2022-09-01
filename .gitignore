@@ -3,3 +3,4 @@ __pycache__/
 ./stalker/data
 ./stalker/logs
 logs
+configuration.json
