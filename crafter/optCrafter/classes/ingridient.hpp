@@ -7,12 +7,12 @@
 class ingridient {
 
 public:
-    const int id;
-    const std::string name;
+    int id;
+    std::string name;
 private:
-    const int tier;
-    const int level;
-    const int profession;
+    int tier;
+    int level;
+    int profession;
     std::vector<ingModifiers> ingModifiers;
     std::vector<itemModifiers> itemModifiers;
     std::vector<statuses> statuses;

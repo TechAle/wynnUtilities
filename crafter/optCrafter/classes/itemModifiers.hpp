@@ -1,16 +1,25 @@
 #include <string>
+#include <utility>
+
+class modifierItem {
+public:
+    std::string name;
+    int value;
+
+    modifierItem(std::string name, int value) {
+        this->name = std::move(name);
+        this->value = value;
+    }
+};
 
 class itemModifiers {
 public:
-    itemModifiers() {
-        value = 0;
+
+    void setValues(const nlohmann::json& values) {
+        for(auto& [key, val] : values.items()) {
+            modifiers.emplace_back(key, val);
+        }
     }
 
-    void setValues(json values) {
-
-    }
-
-    const std::string name;
-private:
-    const int value;
+    std::vector<modifierItem> modifiers;
 };

@@ -1,21 +1,40 @@
 #include <string>
 
+class statusItems{
+public:
+    std::string name;
+    std::string type;
+    int min, max;
+    statusItems(std::string name, nlohmann::json values) {
+        this->name = name;
+        int idx = 0;
+        for(auto& [key, val] : values.items()) {
+            switch (idx++) {
+                case 0:
+                    max = val;
+                    break;
+                case 1:
+                    min = val;
+                    break;
+                case 2:
+                    type = val;
+                    break;
+            }
+
+        }
+    }
+
+};
+
 class statuses {
 public:
-    statuses() {
-        name = "";
-        min = 0;
-        max = 0;
-        type = 0;
+    void setValues(nlohmann::json values) {
+        for(auto& [key, val] : values.items()) {
+            modifiers.emplace_back(key, val);
+        }
     }
+    std::vector<statusItems> modifiers;
 
-    void setValues(json values) {
-
-    }
-
-    const std::string name;
 private:
-    const int min;
-    const int max;
-    const int type;
+
 };
