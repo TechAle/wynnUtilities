@@ -4,6 +4,8 @@ __pycache__/
 ./stalker/logs
 logs
 configuration.json
+./crafter/dataset
+./crafter/optCrafter/utils
 
 # clion
 CMakeLists.txt.user

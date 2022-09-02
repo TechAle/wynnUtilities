@@ -72,21 +72,23 @@ def createDataset():
             "itemModifiers": itemModToAdd,
             "ingredientModifiers": ingModifs
         }
-    with open('./dataset/ings.json', 'w') as fp:
+    with open('./crafter/dataset/ings.json', 'w') as fp:
         json.dump(ingsOutput, fp, indent=4)
 
     professions = {v: k for k, v in professions.items()}
-    with open('./dataset/prof.json', 'w') as fp:
+    with open('./crafter/dataset/prof.json', 'w') as fp:
         json.dump(professions, fp, indent=4)
     itemModifiers = {v: k for k, v in itemModifiers.items()}
-    with open('./dataset/itemMods.json', 'w') as fp:
+    with open('./crafter/dataset/itemMods.json', 'w') as fp:
         json.dump(itemModifiers, fp, indent=4)
     statuses = {v: k for k, v in statuses.items()}
-    with open('./dataset/stats.json', 'w') as fp:
+    with open('./crafter/dataset/stats.json', 'w') as fp:
         json.dump(statuses, fp, indent=4)
     ingModifiers = {v: k for k, v in ingModifiers.items()}
-    with open('./dataset/ingModifiers.json', 'w') as fp:
+    with open('./crafter/dataset/ingModifiers.json', 'w') as fp:
         json.dump(ingModifiers, fp, indent=4)
 
 
-createDataset()
+if __name__ == "__main__":
+    print("Please run setup.py not this")
+    exit(-1)
