@@ -2,11 +2,9 @@
 
 class statusItems{
 public:
-    std::string name;
-    std::string type;
-    int min, max;
-    statusItems(std::string name, nlohmann::json values) {
-        this->name = name;
+    int min, max, type, name;
+    statusItems(const std::string& name, nlohmann::json values) {
+        this->name = std::stoi(name);
         int idx = 0;
         for(auto& [key, val] : values.items()) {
             switch (idx++) {
@@ -35,6 +33,5 @@ public:
     }
     std::vector<statusItems> modifiers;
 
-private:
 
 };

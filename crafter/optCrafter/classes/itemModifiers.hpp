@@ -3,11 +3,10 @@
 
 class modifierItem {
 public:
-    std::string name;
-    int value;
+    int value, name;
 
-    modifierItem(std::string name, int value) {
-        this->name = std::move(name);
+    modifierItem(const std::string& name, int value) {
+        this->name = std::stoi(name);
         this->value = value;
     }
 };

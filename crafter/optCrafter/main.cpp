@@ -12,7 +12,7 @@ int main() {
     stringstream buffer;
     buffer << fJson.rdbuf();
     json jsonFile = json::parse(buffer.str());
-    ingridient ingridients[jsonFile.size()];
+    ingridient ingsNow[jsonFile.size()];
 
     // Iterate every ing
     int idIngridients = 0;
@@ -21,7 +21,7 @@ int main() {
         int step = 0;
         int tier;
         int level;
-        int prof[] = {-1, -1, -1, -1, -1, -1};
+        vector<int> prof;
         ingModifiers ingMod;
         itemModifiers itMod;
         statuses stats;
@@ -39,7 +39,7 @@ int main() {
                     break;
                 case 3:
                     for(int val : value) {
-                        prof[idx++] = val;
+                        prof.push_back(val);
                     }
                     break;
                 case 4:
@@ -51,7 +51,9 @@ int main() {
 
             }
         }
+        ingsNow[idIngridients++].setValue(name, tier, level, prof, ingMod, itMod, stats);
     }
+    int b = 0;
 
     /*
     */

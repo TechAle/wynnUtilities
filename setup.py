@@ -4,7 +4,7 @@ import requests
 import os
 from crafter import creations
 
-#subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
 
 try:
     os.makedirs("./crafter/dataset")
