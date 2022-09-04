@@ -2,9 +2,9 @@
 
 class statusItems{
 public:
-    int min, max, type, name;
+    int min, max, type, id;
     statusItems(const std::string& name, nlohmann::json values) {
-        this->name = std::stoi(name);
+        this->id = std::stoi(name);
         int idx = 0;
         for(auto& [key, val] : values.items()) {
             switch (idx++) {

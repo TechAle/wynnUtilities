@@ -9,11 +9,16 @@ class ingridient {
 
 public:
     std::string name;
-
+    int tier;
+    int level;
+    std::vector<int> prof;
+    ingModifiers ingModifiers;
+    itemModifiers itemModifiers;
+    statuses statuses;
 
     void setValue(std::string name, int tier, int level, std::vector<int> prof,
-               ingModifiers ingModifiers, itemModifiers itemModifiers,
-               statuses statuses) {
+               class ingModifiers ingModifiers, class itemModifiers itemModifiers,
+               class statuses statuses) {
         this->name = std::move(name);
         this->tier = tier;
         this->level = level;
@@ -23,12 +28,7 @@ public:
         this->statuses = std::move(statuses);
     }
 
+
 private:
-    int tier;
-    int level;
-    std::vector<int> prof;
-    ingModifiers ingModifiers;
-    itemModifiers itemModifiers;
-    statuses statuses;
 };
 
