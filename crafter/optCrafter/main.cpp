@@ -53,10 +53,8 @@ int main() {
         }
         ingsNow[idIngridients++].setValue(name, tier, level, prof, ingMod, itMod, stats);
     }
-    int b = 0;
+    // There are some more ings that are powders
 
-    /*
-    */
 
 
     return 0;

@@ -19,6 +19,19 @@ def createDatalist():
     print(header + body + footer)
 
 
+def powderToReq(powder):
+    if powder == "Earth":
+        return "strength"
+    elif powder == "Water":
+        return "intelligence"
+    elif powder == "Thunder":
+        return "dexterity"
+    elif powder == "Fire":
+        return "defense"
+    elif powder == "Air":
+        return "agility"
+
+
 def createDataset():
     wynnApi = WynnPy.wynnPy()
     ings = wynnApi.getIngridients()
@@ -28,6 +41,65 @@ def createDataset():
     statuses = {}
     types = {}
     ingModifiers = {}
+    # Add powders
+    kinds = ["Earth", "Water", "Thunder", "Fire", "Air"]
+
+    powders = {
+        1: {
+            "durability": -35,
+            "neutral": -37,
+            "damage": 40,
+            "req": 0
+        },
+        2: {
+            "durability": -52.5,
+            "neutral": -46,
+            "damage": 51,
+            "req": 0
+        },
+        3: {
+            "durability": -70,
+            "req": 10,
+            "neutral": -55,
+            "damage": 62
+        },
+        4: {
+            "durability": -91,
+            "req": 20,
+            "neutral": -68,
+            "damage": 75
+        },
+        5: {
+            "durability": -112,
+            "req": 28,
+            "neutral": -84,
+            "damage": 92
+        },
+        6: {
+            "durability": -133,
+            "req": 36,
+            "neutral": -102,
+            "damage": 112
+        }
+    }
+    for kind in kinds:
+        for powder in powders:
+            ings["ingredients"].append({
+                "name": f"{kind} powder {powder}",
+                "tier": 0,
+                "level": 0,
+                "professions": ["ARMOURING", "TAILORING",
+                                "WEAPONSMITHING", "WOODWORKING",
+                                "JEWELING"],
+                "statuses": {},
+                "ingredientModifiers": {},
+                "itemModifiers": {
+                    "durability": powders[powder]["durability"],
+                    powderToReq(kind): powders[powder]["req"],
+                    kind: powders[powder]["damage"],
+                    "neutral": powders[powder]["neutral"]
+                }
+            })
     for ing in ings["ingredients"]:
         for prof in ing["professions"]:
             if not professions.__contains__(prof):
@@ -72,6 +144,7 @@ def createDataset():
             "itemModifiers": itemModToAdd,
             "ingredientModifiers": ingModifs
         }
+
     with open('./crafter/dataset/ings.json', 'w') as fp:
         json.dump(ingsOutput, fp, indent=4)
 
