@@ -10,6 +10,7 @@ from api.urls.UrlList import urlList
 import time
 
 
+# noinspection PyTypeChecker
 class wynnPy:
     BASEURL = "http://api.wynncraft.com/"
     WEBURL = "https://web-api.wynncraft.com/"
@@ -178,6 +179,38 @@ class wynnPy:
             if response[server].__contains__(name):
                 return server
         return -1
+
+    def getRecipeList(self):
+        response = sendRequest(self.BASEURL + self.uList.getRecipeList())
+        output = {}
+        for data in response["data"]:
+            name, level = data.split("-", 1)
+            if not output.__contains__(name):
+                output[name] = []
+            output[name].append(level)
+        return output
+
+    def getRecipe(self, recipe):
+        while True:
+            response = sendRequest(self.BASEURL + self.uList.getRecipe(recipe))
+            if type(response) is not dict or not response.__contains__("data") or response["data"].__len__() == 0:
+                time.sleep(60)
+                continue
+            if response["data"][0]["type"] == "FOOD" or response["data"][0]["type"] == "SCROLL" or response["data"][0]["type"] == "POTION":
+                output = {
+                    "level": [response["data"][0]["level"]["minimum"], response["data"][0]["level"]["maximum"]],
+                    "healthOrDamage": [response["data"][0]["healthOrDamage"]["minimum"], response["data"][0]["healthOrDamage"]["maximum"]],
+                    "duration": [response["data"][0]["duration"]["minimum"], response["data"][0]["duration"]["maximum"]],
+                    "basicDuration": [response["data"][0]["basicDuration"]["minimum"], response["data"][0]["basicDuration"]["maximum"]],
+                }
+            else:
+                output = {
+                    "level": [response["data"][0]["level"]["minimum"], response["data"][0]["level"]["maximum"]],
+                    "healthOrDamage": [response["data"][0]["healthOrDamage"]["minimum"], response["data"][0]["healthOrDamage"]["maximum"]],
+                    "durability": [response["data"][0]["durability"]["minimum"], response["data"][0]["durability"]["maximum"]]
+                }
+            return output
+
 
 def sendRequest(url):
     try:

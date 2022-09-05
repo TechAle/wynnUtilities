@@ -59,3 +59,9 @@ class urlList:
 
     def getIngridients(self):
         return self.athena.getIngridients()
+
+    def getRecipeList(self):
+        return self.v2.getRecipeList()
+
+    def getRecipe(self, recipe):
+        return self.v2.getRecipe(recipe)

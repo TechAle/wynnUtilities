@@ -34,6 +34,10 @@ def powderToReq(powder):
 
 def createDataset():
     wynnApi = WynnPy.wynnPy()
+    #createIngDataset(wynnApi)
+    createRecipeDataset(wynnApi)
+
+def createIngDataset(wynnApi):
     ings = wynnApi.getIngridients()
     ingsOutput = {}
     professions = {}
@@ -47,39 +51,27 @@ def createDataset():
     powders = {
         1: {
             "durability": -35,
-            "neutral": -37,
-            "damage": 40,
             "req": 0
         },
         2: {
             "durability": -52.5,
-            "neutral": -46,
-            "damage": 51,
             "req": 0
         },
         3: {
             "durability": -70,
-            "req": 10,
-            "neutral": -55,
-            "damage": 62
+            "req": 10
         },
         4: {
             "durability": -91,
-            "req": 20,
-            "neutral": -68,
-            "damage": 75
+            "req": 20
         },
         5: {
             "durability": -112,
-            "req": 28,
-            "neutral": -84,
-            "damage": 92
+            "req": 28
         },
         6: {
             "durability": -133,
-            "req": 36,
-            "neutral": -102,
-            "damage": 112
+            "req": 36
         }
     }
     for kind in kinds:
@@ -95,9 +87,7 @@ def createDataset():
                 "ingredientModifiers": {},
                 "itemModifiers": {
                     "durability": powders[powder]["durability"],
-                    powderToReq(kind): powders[powder]["req"],
-                    kind: powders[powder]["damage"],
-                    "neutral": powders[powder]["neutral"]
+                    powderToReq(kind): powders[powder]["req"]
                 }
             })
     for ing in ings["ingredients"]:
@@ -161,6 +151,14 @@ def createDataset():
     with open('./crafter/dataset/ingModifiers.json', 'w') as fp:
         json.dump(ingModifiers, fp, indent=4)
 
+def createRecipeDataset(wynnApi):
+    recipes = wynnApi.getRecipeList()
+    output = {x: [] for x in recipes.keys()}
+    for weapon in recipes:
+        for level in recipes[weapon]:
+            output[weapon].append(wynnApi.getRecipe(weapon + "-" + level))
+    with open('./crafter/dataset/recipes.json', 'w') as fp:
+        json.dump(recipes, fp, indent=4)
 
 if __name__ == "__main__":
     print("Please run setup.py not this")

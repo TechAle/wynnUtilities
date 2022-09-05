@@ -7,7 +7,7 @@ int main() {
 
     bool loop = true;
     while (loop) {
-        int choose = requestInt("1) id->ing\n2) prof->ids\n3) name->id", 5);
+        int choose = requestInt("1) id->ing\n2) prof->ids\n3) name->id\n4) Craft", 5);
         int temp;
         switch (choose) {
             case 0:
@@ -29,6 +29,7 @@ int main() {
                 std::cout << "Output: " << dataset.nameToId(requestString("Name: ")) << endl;
                 break;
             default:
+                
                 break;
         }
     }
