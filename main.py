@@ -35,7 +35,7 @@ def stopBot():
 def startChecker():
     global checker
     if checker is None:
-        checker = checkerCore(threading.currentThread())
+        checker = checkerCore(threading.current_thread())
 
     if not checker.running:
         checker.startCheckerThread()
@@ -55,14 +55,14 @@ def checkInfoPlayer():
           .format(player.username, apiWynn.getLobbyPlayer(player.username), player.meta.online,
                   player.guild["name"], player.guild["rank"], player.globals.totalLevel["combined"]))
 
-    for wynnClass in player.classes:
+    for wynnClass in player.characters:
         print(
             "Name: {} IsHigh: {} Level: {} Blocks walked: {} chests: {} Playtime: {}\nMobs Killed: {} Deaths: {} PvpKills: {} PvpDeaths: {}\n"
             "Craftsman: {} Hardcore: {} Hunted: {} Ironman: {}\n"
             "Strenght: {} Dexterity: {} Intelligence: {} Defence: {} Agility: {}\n"
             "Alchemism: {} Armouring: {} Cooking: {} Farming: {} Fishing: {} Jeweling: {} Mining: {}\n"
             "Tailoring: {} Weaponsmithing: {} Woodcutting: {} Woodworking: {}\n"
-                .format(wynnClass.name, isHighLevel(wynnClass), wynnClass.combatLevel.level, wynnClass.blocksWalked, wynnClass.chestsFound,
+                .format(wynnClass.type, isHighLevel(wynnClass), wynnClass.combatLevel.level, wynnClass.blocksWalked, wynnClass.chestsFound,
                         wynnClass.playtime,
                         wynnClass.mobsKilled, wynnClass.deaths, wynnClass.pvpKills, wynnClass.pvpDeaths,
                         wynnClass.gamemode.craftsman, wynnClass.gamemode.hardcore, wynnClass.gamemode.hunted,
@@ -111,7 +111,7 @@ def updateNonHunted():
         i += 1
         if statsPlayer is None:
             continue
-        for classWynn in statsPlayer.classes:
+        for classWynn in statsPlayer.characters:
             if isHighLevel(classWynn):
                 i -= 1
                 players.pop(i)
@@ -131,7 +131,7 @@ def stop():
 def startLocationStalker():
     global locator
     if locator is None:
-        locator = locatorCore(threading.currentThread())
+        locator = locatorCore(threading.current_thread())
     if not locator.running:
         locator.startLocatorThread()
 
@@ -142,7 +142,7 @@ def stopLocationStalker():
 
 
 if __name__ == "__main__":
-    dRPC = RPC(threading.currentThread())
+    dRPC = RPC(threading.current_thread())
     while True:
         {
             1: startBot,

@@ -40,13 +40,14 @@ class checkerCore:
         playerClasses = getPlayerClasses(self.wynnApi, self.player.strip())
         # Print classes avaible
         askString = ""
-        for idx, wynnClass in enumerate(playerClasses.classes):
-            askString += "{}) {}, {}\n".format(idx + 1, wynnClass.name, wynnClass.combatLevel.level)
+        for idx, wynnClass in enumerate(playerClasses.characters):
+            askString += "{}) {}, {}\n".format(idx + 1,
+                                               wynnClass.name, wynnClass.combatLevel.level)
         askString += "Choose: "
-        output = generalIntAsk(askString, len(playerClasses.classes)) - 1
+        output = generalIntAsk(askString, len(playerClasses.characters)) - 1
 
-        self.level = playerClasses.classes[output].combatLevel.level
-        self.name = playerClasses.classes[output].name
+        self.level = playerClasses.characters[output].combatLevel.level
+        self.name = playerClasses.characters[output].name
 
     def updatePlayerInformations(self):
         # Get player classes
@@ -74,7 +75,8 @@ class checkerCore:
                 if player != self.player and not playersChecked.__contains__(player):
                     possibleHunter, sureHunter = self.isHunter(player)
                     if possibleHunter:
-                        sendMessageWebhook("Warning", "Possible hunter joined: " + player, self.webhook)
+                        sendMessageWebhook(
+                            "Warning", "Possible hunter joined: " + player, self.webhook)
                 playersChecked.append(player)
             time.sleep(60)
 
@@ -86,7 +88,7 @@ class checkerCore:
 
         found = False
 
-        for classWynn in statsPlayer.classes:
+        for classWynn in statsPlayer.characters:
             toAdd = optPlayerStats(classWynn, statsPlayer.timeStamp)
             if toAdd.combatLevel.level - 10 <= self.level <= toAdd.combatLevel.level + 10 \
                     and (toAdd.combatLevel.level >= 103 or toAdd.gamemode.hunted):

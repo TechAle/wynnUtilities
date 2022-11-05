@@ -6,7 +6,7 @@ class requestV3(baseRequest):
         super().__init__("api/v3/")
 
     def getClasses(self, name):
-        return self.extension + "player/" + name + "/classes"
+        return self.extension + "player/" + name + "/characters"
 
     def getWynnClass(self, name, classWynn):
-        return self.extension + "player/" + name + "/classes/" + classWynn
+        return self.extension + "player/" + name + "/characters/" + classWynn
