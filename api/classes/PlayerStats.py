@@ -7,14 +7,16 @@ class playerStats:
         self.ranking = json["ranking"]
         self.meta = meta(json["meta"])
         self.globals = globals(json["global"])
-        self.classes = []
-        for classCheck in json["classes"]:
-            self.classes.append(wynnClass(classCheck))
+        self.characters = []
+        for uuid, classCheck in json["characters"].items():
+            self.characters.append(wynnClass(uuid, classCheck))
         self.timeStamp = json["timestamp"]
 
+
 class wynnClass:
-    def __init__(self, dict):
-        self.name = dict["name"]
+    def __init__(self, uuid: str, dict: dict):
+        self.uuid = uuid
+        self.type = dict["type"]
         self.totalLevel = dict["level"]
         self.combatLevel = profClass(dict["professions"]["combat"])
         self.alchemismLevel = profClass(dict["professions"]["alchemism"])
@@ -25,7 +27,8 @@ class wynnClass:
         self.jewelingLevel = profClass(dict["professions"]["jeweling"])
         self.miningLevel = profClass(dict["professions"]["mining"])
         self.tailoringLevel = profClass(dict["professions"]["tailoring"])
-        self.weaponsmithingLevel = profClass(dict["professions"]["weaponsmithing"])
+        self.weaponsmithingLevel = profClass(
+            dict["professions"]["weaponsmithing"])
         self.woodcuttingLevel = profClass(dict["professions"]["woodcutting"])
         self.woodworkingLevel = profClass(dict["professions"]["woodworking"])
         self.skills = dict["skills"]
@@ -61,10 +64,12 @@ class gamemode:
         self.ironman = dict["ironman"]
         self.hunted = dict["hunted"]
 
+
 class profClass:
     def __init__(self, dict):
         self.level = dict["level"] if dict["level"] != None else 0
         self.xp = dict["xp"] if dict["xp"] != None else 0
+
 
 class globals:
     def __init__(self, dict):

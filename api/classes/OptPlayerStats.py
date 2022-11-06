@@ -1,6 +1,7 @@
 class optPlayerStats:
     def __init__(self, wynnClass, server, timestamp):
-        self.className = wynnClass.name
+        self.uuid = wynnClass.uuid
+        self.type = wynnClass.type
         self.server = server
         self.mobsKilled = wynnClass.mobsKilled
         self.gamemode = wynnClass.gamemode
@@ -23,4 +24,3 @@ class optPlayerStats:
         self.woodcuttingLevel = wynnClass.woodcuttingLevel
         self.woodworkingLevel = wynnClass.woodworkingLevel
         self.timeStamp = timestamp
-
