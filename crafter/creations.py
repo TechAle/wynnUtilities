@@ -34,7 +34,7 @@ def powderToReq(powder):
 
 def createDataset():
     wynnApi = WynnPy.wynnPy()
-    #createIngDataset(wynnApi)
+    createIngDataset(wynnApi)
     createRecipeDataset(wynnApi)
 
 def createIngDataset(wynnApi):
@@ -153,12 +153,14 @@ def createIngDataset(wynnApi):
 
 def createRecipeDataset(wynnApi):
     recipes = wynnApi.getRecipeList()
+    print("Recipe dataset...")
     output = {x: [] for x in recipes.keys()}
     for weapon in recipes:
+        print("Doing " + weapon)
         for level in recipes[weapon]:
             output[weapon].append(wynnApi.getRecipe(weapon + "-" + level))
     with open('./crafter/dataset/recipes.json', 'w') as fp:
-        json.dump(recipes, fp, indent=4)
+        json.dump(output, fp, indent=4)
 
 if __name__ == "__main__":
     print("Please run setup.py not this")
