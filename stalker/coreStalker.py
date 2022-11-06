@@ -8,7 +8,6 @@ from api.classes.PlayerStats import playerStats
 from stalker.classes.lootrunnerClass import lootrunner
 from stalker.classes.serverClass import serverManager
 
-from utils.askUtils import *
 from utils.operatorsUtils import *
 
 from utils import fileUtils, discordUtils
@@ -201,7 +200,9 @@ class stalkerCore:
 
             for i in range(len(results)):
                 try:
+                    # noinspection PyTypeChecker
                     for player in results[i]:
+                        # noinspection PyUnresolvedReferences
                         targetStats[player] = results[i][player]
                 except TypeError:
                     pass
@@ -229,7 +230,7 @@ class stalkerCore:
                     # Now we have to search for the same class
                     for nowClass in targetStats[nowPlayer]:
                         for beforeClass in prevTargets[nowPlayer]:
-                            if nowClass.className == beforeClass.className:
+                            if nowClass.uuid == beforeClass.uuid:
                                 self.lock.acquire()
                                 try:
                                     if self.timeStamps.__contains__(nowPlayer):
@@ -240,7 +241,7 @@ class stalkerCore:
                                 hunterActive = False
                                 notLr = False
                                 # @formatter:off
-                                outputStr = "{} Lobby: {} Class: {}. Hunted: {} Level: {} Craftman: {} Ironman: {} Hardcore: {}\n".format(nowPlayer, self.wynnApi.getLobbyPlayer(nowPlayer), nowClass.className, "y" if nowClass.gamemode.hunted else "n", nowClass.combatLevel.level,
+                                outputStr = "{} Lobby: {} Class: {}. Hunted: {} Level: {} Craftman: {} Ironman: {} Hardcore: {}\n".format(nowPlayer, self.wynnApi.getLobbyPlayer(nowPlayer), nowClass.type, "y" if nowClass.gamemode.hunted else "n", nowClass.combatLevel.level,
                                                                                                                                          "y" if nowClass.gamemode.craftsman else "n", "y" if nowClass.gamemode.ironman else "n", "y" if nowClass.gamemode.hardcore else "n")
                                 # Everything that changed
                                 if (mobsKilled := nowClass.mobsKilled - beforeClass.mobsKilled) > 0:
@@ -309,7 +310,7 @@ class stalkerCore:
                                 if blocksWalkedTotal > 0:
                                     if prevPrevTargets is not None and prevPrevTargets.__contains__(nowPlayer):
                                         for beforeBeforeClass in prevPrevTargets[nowPlayer]:
-                                            if beforeBeforeClass.className == beforeClass.className and beforeBeforeClass.server == beforeClass.server:
+                                            if beforeBeforeClass.type == beforeClass.type and beforeBeforeClass.server == beforeClass.server:
                                                 blocksWalkedTotal += abs(beforeClass.blocksWalked - beforeBeforeClass.blocksWalked)
                                     outputStr += "Blocks Walked now: " + str(blocksWalkedNow) + " Total: " + str(blocksWalkedTotal) + "\n"
                                 else:
@@ -353,15 +354,15 @@ class stalkerCore:
                                     predictZoneNumber = -1
                                     low = False
 
-                                    if nowClass.className.__contains__("mage") or nowClass.className.__contains__("wizard"):
+                                    if nowClass.type.__contains__("MAGE") or nowClass.type.__contains__("WIZARD"):
                                         low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["mage"])
-                                    elif nowClass.className.__contains__("shaman") or nowClass.className.__contains__("skyseer"):
+                                    elif nowClass.type.__contains__("SHAMAN") or nowClass.type.__contains__("SKYSEER"):
                                         low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["shaman"])
-                                    elif nowClass.className.__contains__("assassin") or nowClass.className.__contains__("ninja"):
+                                    elif nowClass.type.__contains__("ASSASSIN") or nowClass.type.__contains__("NINJA"):
                                         low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["assassin"])
-                                    elif nowClass.className.__contains__("warrior") or nowClass.className.__contains__("kni"):
+                                    elif nowClass.type.__contains__("WARRIOR") or nowClass.type.__contains__("KNIGHT"):
                                         low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["warrior"])
-                                    elif nowClass.className.__contains__("archer") or nowClass.className.__contains__("hunt"):
+                                    elif nowClass.type.__contains__("ARCHER") or nowClass.type.__contains__("HUNTER"):
                                         low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["archer"])
 
                                     if predictZone != "":
@@ -372,8 +373,8 @@ class stalkerCore:
                                             server = nowClass.server
                                             if prevTargets.__contains__(nowPlayer) and timePlaying < 15:
                                                 server = prevTargets[nowPlayer][0].server
-                                            #discordUtils.sendMessageWebhook("Lootrunner found: " + nowPlayer + " " + nowClass.className, predictZone + "\n" + outputStr, self.webhookLr, "ffffff" if low else "000000")
-                                            self.serverManager.addLootrunner(lootrunner(nowPlayer, server, blocksWalkedNow, blocksWalkedTotal, timePlaying, predictZoneNumber, nowClass.timeStamp, nowClass.className, low))
+                                            #discordUtils.sendMessageWebhook("Lootrunner found: " + nowPlayer + " " + nowClass.type, predictZone + "\n" + outputStr, self.webhookLr, "ffffff" if low else "000000")
+                                            self.serverManager.addLootrunner(lootrunner(nowPlayer, server, blocksWalkedNow, blocksWalkedTotal, timePlaying, predictZoneNumber, nowClass.timeStamp, nowClass.type, low))
                                     else:
                                         threading.Thread(target=lambda: self.logger.warning(
                                             "Not accepted: {} {}".format(nowPlayer, outputStr))).start()
@@ -487,8 +488,8 @@ class stalkerCore:
 
         statsPlayer = getPlayerClasses(self.wynnApi, player, self.logger)
 
-        if statsPlayer is None or statsPlayer == "" or not type(statsPlayer) == playerStats or len(
-                statsPlayer.classes) == 0:
+        if statsPlayer is None or statsPlayer == "" or not type(statsPlayer) == playerStats \
+                or len(statsPlayer.characters) == 0:
             return [], "", False, True
 
         ## Classes that are going to be added
@@ -497,18 +498,18 @@ class stalkerCore:
         isHigh = False
         info = ""
         ## Check every class
-        for classWynn in statsPlayer.classes:
+        for classWynn in statsPlayer.characters:
             toAdd = optPlayerStats(classWynn, statsPlayer.meta.server, statsPlayer.timeStamp)
             added = False
             if isHighLevel(classWynn):
                 classAdded.append(toAdd)
                 isHigh = True
                 added = True
-                info += "l " + toAdd.className + "|"
+                info += "l " + toAdd.type + "|"
             if isTarget(classWynn, self.hunterCalling):
                 if not added:
                     classAdded.append(toAdd)
-                info += ("y " if toAdd.gamemode.hunted else "n ") + toAdd.className + "|"
+                info += ("y " if toAdd.gamemode.hunted else "n ") + toAdd.type + "|"
                 oneHunted = True
             elif isTarget(classWynn, True):
                 if not added:
