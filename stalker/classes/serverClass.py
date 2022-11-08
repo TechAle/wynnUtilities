@@ -19,6 +19,8 @@ class serverManager:
                     if player.disc:
                         if player.name == lootrunner.name and player.predict == lootrunner.predict:
                             return
+            if lootrunner.timeStamp < self.serversBefore[lootrunner.server]["uptime"]:
+                return
             self.serversBefore[lootrunner.server]["players"].append(lootrunner)
             self.serversBefore[lootrunner.server]["lastLooted"] = lootrunner.timeStamp
 
@@ -73,9 +75,10 @@ class serverManager:
                 if not player.disc:
                     listPlayers += f"{player.name} ({player.blocksNow}-{player.blocksTotal}) {player.mins}mins {player.nameClass} <t:{int(player.timeStamp/1000)}:R> Low: {str(player.low)}\n"
                 else:
-                    listPlayers += f"{player.name} low: False"
+                    listPlayers += f"{player.name} low: False\n"
                 if player.predict != -1:
                     listPrediction += f"{player.getPredictionName()} <t:{int(player.timeStamp/1000)}:R>\n"
+            listPrediction.replace("*", "\*")
             if listPlayers != "":
                 embed.add_field(name="Players: ",
                                 value=listPlayers)

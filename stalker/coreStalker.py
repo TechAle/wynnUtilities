@@ -89,16 +89,18 @@ class stalkerCore:
                         zone = newLrers[6:]
                     else:
                         timeLr = newLrers[1:3]
-                        timeLr = time.time() - int(timeLr[0])*60
+                        timeLr = time.time() - int(timeLr[0]) * 60
                         name = newLrers[3]
                         zone = newLrers[4:]
                     timeLr *= 1000
                     zone = "Claimed: " + " ".join(zone)
-                    self.serverManager.addLootrunner(lootrunner("*" + name, wc, "", "", "?", zone, timeLr, "?", False, True))
+                    self.serverManager.addLootrunner(
+                        lootrunner("*" + name, wc, "", "", "?", zone, timeLr, "?", False, True))
                 except Exception:
                     pass
         except FileNotFoundError:
             open("lrGuildResults.txt", 'a').close()
+
     def threadTime(self):
         self.playersTime = {}
 
@@ -395,12 +397,16 @@ class stalkerCore:
                                             else:
                                                 self.loggerHunters.log(35, outputStr)
 
-                                if not notLr and not hunterActive and mobsKilled < 500 and self.filters["max"] > blocksWalkedNow:
+                                if not notLr and not hunterActive and mobsKilled < 1000 and self.filters["maxLow"] > blocksWalkedNow:
                                     predictZone = ""
                                     predictZoneNumber = -1
                                     low = False
+                                    isKnown = self.knownLootrunners.__contains__(nowPlayer)
 
-                                    if nowClass.type.__contains__("MAGE") or nowClass.type.__contains__("WIZARD"):
+
+                                    if blocksWalkedNow > self.filters["max"] and not isKnown:
+                                        low = True
+                                    elif nowClass.type.__contains__("MAGE") or nowClass.type.__contains__("WIZARD"):
                                         low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["mage"])
                                     elif nowClass.type.__contains__("SHAMAN") or nowClass.type.__contains__("SKYSEER"):
                                         low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["shaman"])
@@ -411,9 +417,10 @@ class stalkerCore:
                                     elif nowClass.type.__contains__("ARCHER") or nowClass.type.__contains__("HUNTER"):
                                         low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["archer"])
 
+                                    nowPlayer = ("!" if isKnown else "") + nowPlayer
+                                    outputStr = ("!" if isKnown else "") + outputStr
+
                                     if predictZone != "":
-                                        if self.knownLootrunners.__contains__(nowPlayer):
-                                            nowPlayer = "!" + nowPlayer
                                         self.logger.log(36, "Lootrunner: " + nowPlayer + "\n" + predictZone)
                                         self.RPC.increaseLootrunners()
 
