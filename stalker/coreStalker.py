@@ -52,16 +52,53 @@ class stalkerCore:
         self.lock = threading.Lock()
         # Players that are not in hunted mode
         self.listPlayers = []
+        # Known lootrunners
+        self.knownLootrunners = []
         # Timestamps
         self.timeStamps = {}
         # Server class
         self.serverManager = serverManager()
         # Load people that are not in hunted mode
         self.loadNoHuntedPeople()
+        # Load known lootrunners
+        self.loadKnownLootrunners()
         # Ask informations
         self.loadInformations()
         self.minuteStage = int(datetime.now().minute / 15)
 
+    def lrGuild(self):
+        self.serverManager.updateServers(self.wynnApi)
+        try:
+            lines = open('lrGuildResults.txt', 'r').readlines()
+            while lines.__len__() > 0:
+                if lines[0][:2] == "WC":
+                    break
+                else:
+                    lines.pop(0)
+
+            for lrers in lines:
+                # noinspection PyBroadException
+                try:
+                    newLrers = lrers.split()
+                    wc = newLrers[0]
+                    # noinspection PyRedeclaration
+                    if newLrers[2] == 'h':
+                        timeLr = newLrers[1:5]
+                        timeLr = time.time() - int(timeLr[0]) * 60 * 60 - int(timeLr[2]) * 60
+                        name = newLrers[5]
+                        zone = newLrers[6:]
+                    else:
+                        timeLr = newLrers[1:3]
+                        timeLr = time.time() - int(timeLr[0])*60
+                        name = newLrers[3]
+                        zone = newLrers[4:]
+                    timeLr *= 1000
+                    zone = "Claimed: " + " ".join(zone)
+                    self.serverManager.addLootrunner(lootrunner("*" + name, wc, "", "", "?", zone, timeLr, "?", False, True))
+                except Exception:
+                    pass
+        except FileNotFoundError:
+            open("lrGuildResults.txt", 'a').close()
     def threadTime(self):
         self.playersTime = {}
 
@@ -120,6 +157,15 @@ class stalkerCore:
             for line in Lines:
                 if len(line := line.strip()) > 0:
                     self.listPlayers.append(line)
+
+    def loadKnownLootrunners(self):
+        fileUtils.createDirectoryIfNotExists("./stalker/data")
+        fileUtils.createFileIfNotExists("./stalker/data/lootrunners.txt")
+        with open("./stalker/data/lootrunners.txt") as fp:
+            Lines = fp.readlines()
+            for line in Lines:
+                if len(line := line.strip()) > 0:
+                    self.knownLootrunners.append(line)
 
     # noinspection PyAttributeOutsideInit
     def loadInformations(self):
@@ -313,7 +359,7 @@ class stalkerCore:
                                             if beforeBeforeClass.type == beforeClass.type and beforeBeforeClass.server == beforeClass.server:
                                                 blocksWalkedTotal += abs(beforeClass.blocksWalked - beforeBeforeClass.blocksWalked)
                                     outputStr += "Blocks Walked now: " + str(blocksWalkedNow) + " Total: " + str(blocksWalkedTotal) + "\n"
-                                else:
+                                elif blocksWalkedTotal < 0:
                                     outputStr += "Tf blocks walked is negative? How? " + str(blocksWalkedNow)
 
                                 if (dungeonsDone := self.getDifferenceDungeons(nowClass.dungeons, beforeClass.dungeons)) != "":
@@ -366,6 +412,8 @@ class stalkerCore:
                                         low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["archer"])
 
                                     if predictZone != "":
+                                        if self.knownLootrunners.__contains__(nowPlayer):
+                                            nowPlayer = "!" + nowPlayer
                                         self.logger.log(36, "Lootrunner: " + nowPlayer + "\n" + predictZone)
                                         self.RPC.increaseLootrunners()
 
@@ -379,8 +427,9 @@ class stalkerCore:
                                         threading.Thread(target=lambda: self.logger.warning(
                                             "Not accepted: {} {}".format(nowPlayer, outputStr))).start()
                                 else:
-                                    threading.Thread(target=lambda: self.logger.warning(
-                                        "Not accepted: {} {}".format(nowPlayer, outputStr))).start()
+                                    if outputStr.__len__() > 0:
+                                        threading.Thread(target=lambda: self.logger.warning(
+                                            "Not accepted: {} {}".format(nowPlayer, outputStr))).start()
 
                     changedServer = False
                     if prevTargets.__contains__(nowPlayer):

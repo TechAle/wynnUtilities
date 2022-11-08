@@ -140,6 +140,11 @@ def stopLocationStalker():
     if locator is not None and locator.on:
         locator.on = False
 
+def lrGuild():
+    if stalker is not None and stalker.on:
+        # noinspection PyUnresolvedReferences
+        stalker.lrGuild()
+
 
 if __name__ == "__main__":
     dRPC = RPC(threading.current_thread())
@@ -154,8 +159,9 @@ if __name__ == "__main__":
             7: endChecker,
             8: startLocationStalker,
             9: stopLocationStalker,
-            10: stop
+            10: lrGuild,
+            11: stop
         }[generalIntAsk(
             "1) Start bot\n2) Stop bot\n3) Check info\n4) Fix duplicates\n5) Update non hunted\n6) Start Checker\n"
-            "7) End Checker\n8) Start Location Stalker\n9) Stop Location Stalker\n10) Stop\nChoose: ",
-            10)]()
+            "7) End Checker\n8) Start Location Stalker\n9) Stop Location Stalker\n10) Lr Guild\n11) Stop\nChoose: ",
+            11)]()

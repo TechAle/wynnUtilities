@@ -14,6 +14,11 @@ class serverManager:
 
     def addLootrunner(self, lootrunner):
         if self.serversBefore.__contains__(lootrunner.server):
+            if lootrunner.disc:
+                for player in self.serversBefore[lootrunner.server]["players"]:
+                    if player.disc:
+                        if player.name == lootrunner.name and player.predict == lootrunner.predict:
+                            return
             self.serversBefore[lootrunner.server]["players"].append(lootrunner)
             self.serversBefore[lootrunner.server]["lastLooted"] = lootrunner.timeStamp
 
@@ -65,7 +70,10 @@ class serverManager:
             listPlayers = ""
             listPrediction = ""
             for player in servers["players"]:
-                listPlayers += f"{player.name} ({player.blocksNow}-{player.blocksTotal}) {player.mins}mins {player.nameClass} <t:{int(player.timeStamp/1000)}:R> Low: {str(player.low)}\n"
+                if not player.disc:
+                    listPlayers += f"{player.name} ({player.blocksNow}-{player.blocksTotal}) {player.mins}mins {player.nameClass} <t:{int(player.timeStamp/1000)}:R> Low: {str(player.low)}\n"
+                else:
+                    listPlayers += f"{player.name} low: False"
                 if player.predict != -1:
                     listPrediction += f"{player.getPredictionName()} <t:{int(player.timeStamp/1000)}:R>\n"
             if listPlayers != "":
