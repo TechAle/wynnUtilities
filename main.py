@@ -1,3 +1,5 @@
+import logging
+
 from checker.coreChecker import checkerCore
 from locator.coreLocator import locatorCore
 from stalker.coreStalker import stalkerCore, getPlayerClasses, isTarget
@@ -7,6 +9,8 @@ import api.WynnPy
 import sys
 from stalker.discordRPC import RPC
 import threading
+import flask
+from multiprocessing import Process
 
 from utils.wynnUtils import isHighLevel
 
@@ -126,6 +130,8 @@ def updateNonHunted():
 
 
 def stop():
+    global server
+    server.terminate()
     sys.exit(0)
 
 def startLocationStalker():
@@ -145,9 +151,7 @@ def lrGuild():
         # noinspection PyUnresolvedReferences
         stalker.lrGuild()
 
-
-if __name__ == "__main__":
-    dRPC = RPC(threading.current_thread())
+def menuThread():
     while True:
         {
             1: startBot,
@@ -165,3 +169,27 @@ if __name__ == "__main__":
             "1) Start bot\n2) Stop bot\n3) Check info\n4) Fix duplicates\n5) Update non hunted\n6) Start Checker\n"
             "7) End Checker\n8) Start Location Stalker\n9) Stop Location Stalker\n10) Lr Guild\n11) Stop\nChoose: ",
             11)]()
+
+def apiThread():
+    app = flask.Flask(__name__)
+
+    @app.route('/wynnStalker', methods=['POST'])
+    def wynnStalker():
+        player = flask.request.values.get("player")
+        location = flask.request.values.get("location")
+        wc = flask.request.values.get("wc")
+        if stalker is not None and stalker.on:
+            # noinspection PyUnresolvedReferences
+            stalker.addLootrunnerApi(player, location, wc)
+        return ""
+
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
+    app.run(port=9090)
+
+if __name__ == "__main__":
+    dRPC = RPC(threading.current_thread())
+    # Set timer so that we see the menu after api is done
+    threading.Timer(2, menuThread).start()
+    # Flask get mad if he is not in main thread
+    apiThread()

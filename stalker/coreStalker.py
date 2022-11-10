@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import flask
 from discord import Webhook, RequestsWebhookAdapter
 
 import api.WynnPy
@@ -100,6 +101,10 @@ class stalkerCore:
                     pass
         except FileNotFoundError:
             open("lrGuildResults.txt", 'a').close()
+
+    def addLootrunnerApi(self, name, zone, wc):
+        self.serverManager.updateServers(self.wynnApi)
+        self.serverManager.addLootrunner(lootrunner("*" + name, wc, "", "", "?", zone, current_milli_time(), "?", False, True))
 
     def threadTime(self):
         self.playersTime = {}
@@ -417,22 +422,21 @@ class stalkerCore:
                                     elif nowClass.type.__contains__("ARCHER") or nowClass.type.__contains__("HUNTER"):
                                         low, predictZone, predictZoneNumber = self.checkBlocks(nowPlayer, blocksWalkedNow, blocksWalkedTotal, self.filters["archer"])
 
-                                    nowPlayer = ("!" if isKnown else "") + nowPlayer
                                     outputStr = ("!" if isKnown else "") + outputStr
 
                                     if predictZone != "":
-                                        self.logger.log(36, "Lootrunner: " + nowPlayer + "\n" + predictZone)
+                                        self.logger.log(36, "Lootrunner: " + ("!" if isKnown else "") + nowPlayer + "\n" + predictZone)
                                         self.RPC.increaseLootrunners()
 
                                         if self.webhookLr != "":
                                             server = nowClass.server
-                                            if prevTargets.__contains__(nowPlayer) and timePlaying < 15:
+                                            if prevTargets.__contains__(nowPlayer) and timePlaying < 6:
                                                 server = prevTargets[nowPlayer][0].server
                                             #discordUtils.sendMessageWebhook("Lootrunner found: " + nowPlayer + " " + nowClass.type, predictZone + "\n" + outputStr, self.webhookLr, "ffffff" if low else "000000")
-                                            self.serverManager.addLootrunner(lootrunner(nowPlayer, server, blocksWalkedNow, blocksWalkedTotal, timePlaying, predictZoneNumber, nowClass.timeStamp, nowClass.type, low))
+                                            self.serverManager.addLootrunner(lootrunner(("!" if isKnown else "") + nowPlayer, server, blocksWalkedNow, blocksWalkedTotal, timePlaying, predictZoneNumber, nowClass.timeStamp, nowClass.type, low))
                                     else:
                                         threading.Thread(target=lambda: self.logger.warning(
-                                            "Not accepted: {} {}".format(nowPlayer, outputStr))).start()
+                                            "Not accepted: {} {}".format(("!" if isKnown else "") + nowPlayer, outputStr))).start()
                                 else:
                                     if outputStr.__len__() > 0:
                                         threading.Thread(target=lambda: self.logger.warning(
