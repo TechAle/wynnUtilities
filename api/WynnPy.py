@@ -8,6 +8,7 @@ from api.classes.PlayerStats import playerStats, wynnClass
 from api.classes.Territory import territory
 from api.urls.UrlList import urlList
 import time
+import traceback
 
 
 # noinspection PyTypeChecker
@@ -119,6 +120,8 @@ class wynnPy:
             while True:
                 response = sendRequest(self.BASEURL + self.uList.getPlayerStats(name))
                 if (not response.__contains__("message") or response["message"] != "API rate limit exceeded") and response != "":
+                    if response.__contains__("status") and response["status"] == 404:
+                        return True
                     try :
                         response["data"][0]["timestamp"] = response["timestamp"]
                         return playerStats(response["data"][0])

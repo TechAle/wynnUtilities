@@ -37,17 +37,19 @@ class checkerCore:
         self.player = data["checker"]["player"]
         self.webhook = data["checker"]["webhook"]
         # Get player classes
-        playerClasses = getPlayerClasses(self.wynnApi, self.player.strip())
+        self.playerClasses = getPlayerClasses(self.wynnApi, self.player.strip())
+        if self.playerClasses is None:
+            return None
         # Print classes avaible
         askString = ""
-        for idx, wynnClass in enumerate(playerClasses.characters):
+        for idx, wynnClass in enumerate(self.playerClasses.characters):
             askString += "{}) {}, {}\n".format(idx + 1,
                                                wynnClass.name, wynnClass.combatLevel.level)
         askString += "Choose: "
-        output = generalIntAsk(askString, len(playerClasses.characters)) - 1
+        output = generalIntAsk(askString, len(self.playerClasses.characters)) - 1
 
-        self.level = playerClasses.characters[output].combatLevel.level
-        self.name = playerClasses.characters[output].name
+        self.level = self.playerClasses.characters[output].combatLevel.level
+        self.name = self.playerClasses.characters[output].name
 
     def updatePlayerInformations(self):
         # Get player classes
@@ -58,7 +60,10 @@ class checkerCore:
                 self.level = wynnClass.combatLevel.level
 
     def startCheckerThread(self):
-        threading.Thread(target=self.startChecking).start()
+        if self.playerClasses is not None:
+            threading.Thread(target=self.startChecking).start()
+        else:
+            print("You havent specified the player to be checked in the configuration file")
 
     def startChecking(self):
         lastLobby = ""
